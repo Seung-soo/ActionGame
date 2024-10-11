@@ -40,6 +40,10 @@ void AAGCharacter::InitAbilitySystem()
 {
 }
 
+void AAGCharacter::HandleGameplayEvent(FGameplayTag EventTag)
+{
+}
+
 void AAGCharacter::AddCharacterAbilities()
 {
 	UAGAbilitySystemComponent* ASC = Cast<UAGAbilitySystemComponent>(AbilitySystemComponent);
@@ -49,6 +53,11 @@ void AAGCharacter::AddCharacterAbilities()
 	}
 
 	ASC->AddCharacterAbilities(StartupAbilities);
+}
+
+TSubclassOf<UGameplayAbility> AAGCharacter::FindAbility(FGameplayTag GameplayTag)
+{
+	return *StartupAbilities.Find(GameplayTag);
 }
 
 void AAGCharacter::SetMovementStateTag(FGameplayTag Tag)

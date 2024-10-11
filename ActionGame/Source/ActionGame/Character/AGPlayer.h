@@ -7,6 +7,7 @@
 #include "AGPlayer.generated.h"
 
 class USpringArmComponent;
+class AAGMonster;
 
 /**
  * 
@@ -26,9 +27,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 public:
-	void ActivateAbility(FGameplayTag AbilityTag);
+	virtual void HandleGameplayEvent(FGameplayTag EventTag) override;
+	
+public:
+	virtual void ActivateAbility(FGameplayTag AbilityTag) override;
 
 	USpringArmComponent* GetSpringArmComponent();
+
+	void SelectAttackTarget();
+	void SetAttackTarget(ACharacter* Target);
+	ACharacter* GetAttackTarget();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -36,4 +44,11 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UCameraComponent> Camera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class USphereComponent> CollisionSphere;
+	
+	// 타겟
+	UPROPERTY()
+	TObjectPtr<AAGMonster> AttackTarget;
 };

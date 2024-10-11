@@ -29,7 +29,7 @@ class ACTIONGAME_API UAGTableData : public UDataAsset
 	GENERATED_BODY()
 	
 public:
-	const UDataTable* FindDataTableByTag(const FGameplayTag& DataTableTag) const;
+	UDataTable* FindDataTableByTag(const FGameplayTag& DataTableTag) const;
 
 public:
 	UPROPERTY(EditDefaultsOnly)

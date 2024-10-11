@@ -24,13 +24,26 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+	virtual void Tick(float DeltaSeconds) override;
+	
 private:
 	void Input_Move(const FInputActionValue& InputValue);
 	void Input_Roll(const FInputActionValue& InputValue);
 	void Input_Block(const FInputActionValue& InputValue);
-	void Input_WeakAttack(const FInputActionValue& InputValue);
-	void Input_StrongAttack(const FInputActionValue& InputValue);
+	void Input_LightAttack(const FInputActionValue& InputValue);
+	void Input_HeavyAttack(const FInputActionValue& InputValue);
 	void Input_Look(const FInputActionValue& InputValue);
+
+public:
+	void HandleGameplayEvent(FGameplayTag EventTag);
+	void HandleGameplayEvent_SaveAttack();
+	void HandleGameplayEvent_RollFinish();
+
+public:
+	void RotateCharacterToTarget();
+
+	// 입력된 방향을 체크하는 함수
+	FVector GetInputDirection();
 
 protected:
 	UPROPERTY(BlueprintReadOnly)

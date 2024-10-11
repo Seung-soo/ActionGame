@@ -2,6 +2,8 @@
 
 
 #include "AGPlayer.h"
+
+#include "AGMonster.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,6 +12,7 @@
 #include "../AbilitySystem/AGAbilitySystemComponent.h"
 #include "../AbilitySystem/Attributes/AGPlayerSet.h"
 #include "../Player/AGPlayerState.h"
+#include "Components/SphereComponent.h"
 
 AAGPlayer::AAGPlayer() : Super()
 {
@@ -26,14 +29,30 @@ AAGPlayer::AAGPlayer() : Super()
 	
 	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(GetCapsuleComponent());
-	SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-	SpringArm->TargetArmLength = 800.0f;
-	SpringArm->bUsePawnControlRotation = true;
+	if (IsValid(SpringArm))
+	{
+		SpringArm->SetupAttachment(GetCapsuleComponent());
+		SpringArm->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
+		SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
+		SpringArm->TargetArmLength = 300.0f;
+		SpringArm->bUsePawnControlRotation = true;
+	}
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm);
-	Camera->bUsePawnControlRotation = false;
+	if (IsValid(Camera))
+	{
+		Camera->SetupAttachment(SpringArm);
+		Camera->bUsePawnControlRotation = false;
+	}
+	
+	CollisionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"));
+	if (IsValid(CollisionSphere))
+	{
+		CollisionSphere->SetupAttachment(GetCapsuleComponent());
+		CollisionSphere->SetSphereRadius(1000.f);
+		CollisionSphere->SetHiddenInGame(false);
+		CollisionSphere->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	}
 
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.f, 0.f, -88.f), FRotator(0.f, -90.f, 0.f));
 }
@@ -46,7 +65,7 @@ void AAGPlayer::BeginPlay()
 void AAGPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
+	
 	InitAbilitySystem();
 }
 
@@ -57,7 +76,7 @@ void AAGPlayer::InitAbilitySystem()
 	AAGPlayerState* PS = GetPlayerState<AAGPlayerState>();
 	if (IsValid(PS))
 	{
-		AbilitySystemComponent = Cast<UAGAbilitySystemComponent>(PS->GetAbilitySystemComponent());
+		AbilitySystemComponent = PS->GetAGAbilitySystemComponent();
 		AbilitySystemComponent->InitAbilityActorInfo(PS, this);
 
 		AttributeSet = PS->GetAGPlayerSet();
@@ -82,12 +101,69 @@ void AAGPlayer::Tick(float DeltaTime)
 	}
 }
 
+void AAGPlayer::HandleGameplayEvent(FGameplayTag EventTag)
+{
+	Super::HandleGameplayEvent(EventTag);
+	
+	AAGPlayerController* PC = Cast<AAGPlayerController>(GetController());
+	if (IsValid(PC))
+	{
+		PC->HandleGameplayEvent(EventTag);
+	}
+}
+
 void AAGPlayer::ActivateAbility(FGameplayTag AbilityTag)
 {
+	Super::ActivateAbility(AbilityTag);
+	
 	AbilitySystemComponent->ActivateAbility(AbilityTag);
 }
 
 USpringArmComponent* AAGPlayer::GetSpringArmComponent()
 {
 	return SpringArm;
+}
+
+void AAGPlayer::SelectAttackTarget()
+{
+	if (false == IsValid(CollisionSphere))
+	{
+		return;
+	}
+	
+	TArray<AActor*> OverlappingActors;
+	// 일정 반경 내의 모든 적을 검색
+	CollisionSphere->GetOverlappingActors(OverlappingActors, AAGMonster::StaticClass());
+
+	AAGMonster* ClosestMonster = nullptr;
+	float MinDistance = FLT_MAX;
+	FVector PlayerLocation = GetActorLocation();
+
+	for (AActor* Actor : OverlappingActors)
+	{
+		float Distance = FVector::Dist(PlayerLocation, Actor->GetActorLocation());
+		if (Distance >= MinDistance)
+		{
+			continue;
+		}
+
+		AAGMonster* Monster = Cast<AAGMonster>(Actor);
+		if (IsValid(Monster))
+		{
+			MinDistance = Distance;
+			ClosestMonster = Monster;
+		}
+	}
+
+	AttackTarget = ClosestMonster;
+}
+
+void AAGPlayer::SetAttackTarget(ACharacter* Target)
+{
+	AttackTarget = Cast<AAGMonster>(Target);
+}
+
+ACharacter* AAGPlayer::GetAttackTarget()
+{
+	return Cast<ACharacter>(AttackTarget);
 }

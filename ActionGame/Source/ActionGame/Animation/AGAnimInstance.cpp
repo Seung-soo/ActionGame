@@ -3,6 +3,7 @@
 
 #include "AGAnimInstance.h"
 
+#include "ActionGame/AGGamplayTags.h"
 #include "ActionGame/Character/AGCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -14,9 +15,9 @@ UAGAnimInstance::UAGAnimInstance(const FObjectInitializer& ObjectInitializer)
 void UAGAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-
+	RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
 	Character = Cast<AAGCharacter>(TryGetPawnOwner());
-
+	
 	if (IsValid(Character))
 	{
 		MovementComponent = Character->GetCharacterMovement();
@@ -33,6 +34,5 @@ void UAGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	Velocity = MovementComponent->Velocity;
-
 	ShouldMove = (Velocity.Size2D() > 3.f && MovementComponent->GetCurrentAcceleration() != FVector::ZeroVector);
 }

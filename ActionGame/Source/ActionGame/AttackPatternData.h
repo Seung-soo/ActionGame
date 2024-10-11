@@ -13,17 +13,17 @@ struct FAttackPatternData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	int32 ComboStep;
+	int32 ComboStep = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	EAttackType PreviousAttackType;
+	EAttackType PreviousAttackType = EAttackType::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	EAttackType CurrentInputType;
+	EAttackType CurrentInputType = EAttackType::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	UAnimMontage* AttackMontage;
+	TObjectPtr<UAnimMontage> AttackMontage = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	bool NextComboEnable;
+	bool NextComboEnable = false;
 };

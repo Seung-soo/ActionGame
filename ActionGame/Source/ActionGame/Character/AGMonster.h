@@ -27,4 +27,5 @@ public:
 
 public:
 	virtual void InitAbilitySystem() override;
+	virtual void HandleGameplayEvent(FGameplayTag EventTag) override;
 };

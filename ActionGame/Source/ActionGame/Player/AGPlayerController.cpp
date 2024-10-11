@@ -2,6 +2,9 @@
 
 
 #include "AGPlayerController.h"
+
+#include "AbilitySystemComponent.h"
+#include "AGPlayerState.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ActionGame/Data/AGInputData.h"
@@ -10,6 +13,9 @@
 #include "../AGGamplayTags.h"
 #include "../Character/AGPlayer.h"
 #include "Abilities/GameplayAbilityTypes.h"
+#include "ActionGame/AbilitySystem/AGAbilitySystemComponent.h"
+#include "ActionGame/AbilitySystem/Abilities/AGGameplayAbility_ComboAttack.h"
+#include "ActionGame/AbilitySystem/Attributes/AGPlayerSet.h"
 #include "GameFramework/SpringArmComponent.h"
 
 AAGPlayerController::AAGPlayerController(const FObjectInitializer& ObjectInitializer)
@@ -56,20 +62,30 @@ void AAGPlayerController::SetupInputComponent()
 		const UInputAction* ActionBlock = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_Block);
 		EnhancedInputComponent->BindAction(ActionBlock, ETriggerEvent::Started, this, &ThisClass::Input_Block);
 		
-		const UInputAction* ActionWeakAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_WeakAttack);
-		EnhancedInputComponent->BindAction(ActionWeakAttack, ETriggerEvent::Started, this, &ThisClass::Input_WeakAttack);
+		const UInputAction* ActionLightAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_LightAttack);
+		EnhancedInputComponent->BindAction(ActionLightAttack, ETriggerEvent::Started, this, &ThisClass::Input_LightAttack);
 
-		const UInputAction* ActionStrongAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_StrongAttack);
-		EnhancedInputComponent->BindAction(ActionStrongAttack, ETriggerEvent::Started, this, &ThisClass::Input_StrongAttack);
+		const UInputAction* ActionHeavyAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_HeavyAttack);
+		EnhancedInputComponent->BindAction(ActionHeavyAttack, ETriggerEvent::Started, this, &ThisClass::Input_HeavyAttack);
 
 		const UInputAction* ActionLook = InputData->FindInputActionByTag(AGGameplayTags::Input_Camera_Look);
 		EnhancedInputComponent->BindAction(ActionLook, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
 	}
 }
 
+void AAGPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+}
+
 void AAGPlayerController::Input_Move(const FInputActionValue& InputValue)
 {
-	if (!IsValid(AGPlayer))
+	if (false == IsValid(AGPlayer))
+	{
+		return;
+	}
+	
+	if (AGPlayer->GetMovementStateTag().MatchesTag(AGGameplayTags::State_Movement_Block))
 	{
 		return;
 	}
@@ -93,19 +109,61 @@ void AAGPlayerController::Input_Move(const FInputActionValue& InputValue)
 
 void AAGPlayerController::Input_Roll(const FInputActionValue& InputValue)
 {
+ 	if (AGPlayer->GetMovementStateTag().MatchesTag(AGGameplayTags::State_Movement_Block))
+	{
+		return;
+	}
+	
+	if (IsValid(AGPlayer))
+	{
+		AGPlayer->ActivateAbility(AGGameplayTags::Ability_Roll);
+	}
 }
 
 void AAGPlayerController::Input_Block(const FInputActionValue& InputValue)
 {
 }
 
-void AAGPlayerController::Input_WeakAttack(const FInputActionValue& InputValue)
+void AAGPlayerController::Input_LightAttack(const FInputActionValue& InputValue)
 {
+	if (FGameplayTag::RequestGameplayTag(TEXT("State.Movement.Block.Roll")) == AGPlayer->GetMovementStateTag())
+	{
+		return;
+	}
+	
+	AAGPlayerState* AGPlayerState = GetPlayerState<AAGPlayerState>();
+	if (IsValid(AGPlayerState))
+	{
+		AGPlayerState->SetInputAttackType(EAttackType::Light);
+	}
 
+	UGameplayAbility* Ability = AGPlayerState->GetAbilityComboAttack();
+	if (IsValid(AGPlayer) && false == IsValid(Ability))
+	{
+		// 내부적으로 이미 활성화되어 있으면 활성화 시키지 않는 로직이 있다
+		AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
+	}
 }
 
-void AAGPlayerController::Input_StrongAttack(const FInputActionValue& InputValue)
+void AAGPlayerController::Input_HeavyAttack(const FInputActionValue& InputValue)
 {
+	if (FGameplayTag::RequestGameplayTag(TEXT("State.Movement.Block.Roll")) == AGPlayer->GetMovementStateTag())
+	{
+		return;
+	}
+	
+	AAGPlayerState* AGPlayerState = GetPlayerState<AAGPlayerState>();
+	if (IsValid(AGPlayerState))
+	{
+		AGPlayerState->SetInputAttackType(EAttackType::Heavy);
+	}
+
+	UGameplayAbility* Ability = AGPlayerState->GetAbilityComboAttack();
+	if (IsValid(AGPlayer) && false == IsValid(Ability))
+	{
+		// 내부적으로 이미 활성화되어 있으면 활성화 시키지 않는 로직이 있다
+		AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
+	}
 }
 
 void AAGPlayerController::Input_Look(const FInputActionValue& InputValue)
@@ -123,4 +181,159 @@ void AAGPlayerController::Input_Look(const FInputActionValue& InputValue)
 	// 마우스 감도 조절을 위해 Scale 값 적용 가능
 	AGPlayer->AddControllerYawInput(LookAxisVector.X * MouseSensitivity_X * DeltaTime);
 	AGPlayer->AddControllerPitchInput(-LookAxisVector.Y * MouseSensitivity_Y * DeltaTime);
+}
+
+void AAGPlayerController::HandleGameplayEvent(FGameplayTag EventTag)
+{
+	if (EventTag.MatchesTag(AGGameplayTags::Event_Montage_SaveAttack))
+	{
+		HandleGameplayEvent_SaveAttack();
+	}
+	else if (EventTag.MatchesTag(AGGameplayTags::Event_Montage_RollFinish))
+	{
+		HandleGameplayEvent_RollFinish();
+	}
+}
+
+void AAGPlayerController::HandleGameplayEvent_SaveAttack()
+{
+	if (false == IsValid(AGPlayer))
+	{
+		return;
+	}
+	AAGPlayerState* AGPlayerState = GetPlayerState<AAGPlayerState>();
+	if (false == IsValid(AGPlayerState))
+	{
+		return;
+	}
+	
+	UAGGameplayAbility_ComboAttack* ComboAttackAbility = AGPlayerState->GetAbilityComboAttack();
+
+	if (IsValid(ComboAttackAbility) && true == ComboAttackAbility->IsActive())
+	{
+		ComboAttackAbility->DecideNextAttack();
+	}
+	//TArray<FGameplayAbilitySpec> ActiveAbilities = AbilitySystemComponent->GetActivatableAbilities();
+
+	// 현재 실행 중인 어빌리티들을 검색
+	// for (FGameplayAbilitySpec AbilitySpec : ActiveAbilities)
+	// {
+	// 	if (false == AbilitySpec.IsActive()) // 활성화된 어빌리티인지 확인
+	// 	{
+	// 		continue;
+	// 	}
+	//
+	// 	UGameplayAbility* ActiveAbility = AbilitySpec.Ability;
+	// 	if (false == IsValid(ActiveAbility))
+	// 	{
+	// 		continue;
+	// 	}
+	//
+	// 	// 태그 확인
+	// 	bool bHasTag = ActiveAbility->AbilityTags.HasTag(AGGameplayTags::Ability_ComboAttack);
+	// 	if (false == bHasTag)
+	// 	{
+	// 		continue;
+	// 	}
+	//
+	// 	// 이 노티파이가 들어올 때까지 다음 공격 입력이 들어왔는지 확인하는 함수 호출
+	// 	UAGGameplayAbility_ComboAttack* ComboAttackAbility = Cast<UAGGameplayAbility_ComboAttack>(ActiveAbility);
+	// 	if (IsValid(ComboAttackAbility))
+	// 	{
+	// 		ComboAttackAbility->DecideNextAttack();
+	// 	}
+	// }
+}
+
+void AAGPlayerController::HandleGameplayEvent_RollFinish()
+{
+	if (false == IsValid(AGPlayer))
+	{
+		return;
+	}
+	
+	UAGAbilitySystemComponent* AbilitySystemComponent =  Cast<UAGAbilitySystemComponent>(AGPlayer->GetAbilitySystemComponent());
+	if (false == IsValid(AbilitySystemComponent))
+	{
+		return;
+	}
+
+	AbilitySystemComponent->CancelAbility(AGGameplayTags::Ability_Roll);
+	
+	//AGPlayer->SetMovementStateTag(AGGameplayTags::State_Movement_Run);
+}
+
+void AAGPlayerController::RotateCharacterToTarget()
+{
+	if (false == IsValid(AGPlayer))
+	{
+		return;
+	}
+
+	FVector Direction = FVector::ZeroVector;
+
+	ACharacter* Target = AGPlayer->GetAttackTarget();
+	if (IsValid(Target))
+	{
+		// 타겟 방향으로 회전
+		Direction = Target->GetActorLocation() - AGPlayer->GetActorLocation();
+	}
+	else
+	{
+		// 방향키 입력 방향으로 회전
+		Direction = GetInputDirection();
+	}
+
+	if (FVector::ZeroVector != Direction)
+	{
+		AGPlayer->SetActorRotation(Direction.Rotation()); 
+	}
+}
+
+FVector AAGPlayerController::GetInputDirection()
+{
+	FVector2D InputKey = FVector2D(0.0, 0.0);
+
+	// 패드 방식도 고려한 듯한 코드
+	// 패드 도입 시에는 이렇게 하면 안되긴 하다.
+	double ForwardValue = 1.0;
+	double RightValue = 1.0;
+	
+	if (IsInputKeyDown(EKeys::W))
+	{
+		InputKey.X += (1.0 * ForwardValue);
+	}
+
+	if (IsInputKeyDown(EKeys::S))
+	{
+		InputKey.X -= (1.0 * ForwardValue);
+	}
+
+	if (IsInputKeyDown(EKeys::A))
+	{
+		InputKey.Y -= (1.0 * RightValue);
+	}
+
+	if (IsInputKeyDown(EKeys::D))
+	{
+		InputKey.Y += (1.0 * RightValue);
+	}
+
+	// 플레이어 컨트롤러를 통해 카메라의 회전 값을 가져옴
+	FRotator CameraRotation = GetControlRotation();
+
+	// 카메라의 Yaw 값만 사용 (수평 회전)
+	FRotator YawRotation(0.0f, CameraRotation.Yaw, 0.0f);
+
+	FVector Direction = FVector(0.0, 0.0, 0.0);
+	if (0.0 != InputKey.X)
+	{
+		Direction += (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X) * InputKey.X);
+	}
+	if (0.0 != InputKey.Y)
+	{
+		Direction += (FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y) * InputKey.Y);
+	}
+
+	return Direction;
 }

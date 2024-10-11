@@ -15,12 +15,17 @@ class ACTIONGAME_API UAGPlayerSet : public UAGAttributeSet
 {
 	GENERATED_BODY()
 
-	ATTRIBUTE_ACCESSORS(ThisClass, CurrentComboCount);
+public:
+	UAGPlayerSet();
+	
+public:
+	ATTRIBUTE_ACCESSORS(ThisClass, Stamina);
+	ATTRIBUTE_ACCESSORS(ThisClass, MaxStamina);
 
 private:
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Combo")
-	FGameplayAttributeData CurrentComboCount;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData Stamina;
 
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"), Category = "Combo")
-	EAttackType PreviousAttackType;
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FGameplayAttributeData MaxStamina;
 };

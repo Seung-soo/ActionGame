@@ -3,7 +3,7 @@
 
 #include "AGTableData.h"
 
-const UDataTable* UAGTableData::FindDataTableByTag(const FGameplayTag& DataTableTag) const
+UDataTable* UAGTableData::FindDataTableByTag(const FGameplayTag& DataTableTag) const
 {
 	for (const FAGDataTableStruct& DataTableStruct : DataTables)
 	{

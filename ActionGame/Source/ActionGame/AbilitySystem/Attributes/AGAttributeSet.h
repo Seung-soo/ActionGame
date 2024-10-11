@@ -26,8 +26,6 @@ public:
 public:
 	ATTRIBUTE_ACCESSORS(ThisClass, Hp);
 	ATTRIBUTE_ACCESSORS(ThisClass, MaxHp);
-	ATTRIBUTE_ACCESSORS(ThisClass, Mp);
-	ATTRIBUTE_ACCESSORS(ThisClass, MaxMp);
 	ATTRIBUTE_ACCESSORS(ThisClass, BaseDamage);
 	ATTRIBUTE_ACCESSORS(ThisClass, BaseDefense);
 
@@ -37,12 +35,6 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData MaxHp;
-
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FGameplayAttributeData Mp;
-
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FGameplayAttributeData MaxMp;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	FGameplayAttributeData BaseDamage;

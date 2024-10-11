@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "ActionGame/AGAttackDefine.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/PlayerState.h"
 #include "AGPlayerState.generated.h"
 
+class UAGGameplayAbility_ComboAttack;
 class UAGAbilitySystemComponent;
 
 /**
@@ -25,6 +28,14 @@ public:
 
 	UAGAbilitySystemComponent* GetAGAbilitySystemComponent() const;
 	class UAGPlayerSet* GetAGPlayerSet() const;
+	
+	void SetInputAttackType(EAttackType AttackType);
+	EAttackType GetInputAttackType();
+
+	void SetAbilityComboAttack(UAGGameplayAbility_ComboAttack* Ability);
+	UAGGameplayAbility_ComboAttack* GetAbilityComboAttack();
+
+	void SetMovementState(FGameplayTag State);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -32,4 +43,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UAGPlayerSet> PlayerSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EAttackType InputAttackType;
+
+	UPROPERTY()
+	TObjectPtr<UAGGameplayAbility_ComboAttack> Ability_ComboAttack; 
 };

@@ -4,6 +4,7 @@
 #include "AGPlayerState.h"
 #include "../AbilitySystem/AGAbilitySystemComponent.h"
 #include "../AbilitySystem/Attributes/AGPlayerSet.h"
+#include "ActionGame/Character/AGCharacter.h"
 
 AAGPlayerState::AAGPlayerState(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -25,4 +26,33 @@ UAGAbilitySystemComponent* AAGPlayerState::GetAGAbilitySystemComponent() const
 UAGPlayerSet* AAGPlayerState::GetAGPlayerSet() const
 {
 	return PlayerSet;
+}
+
+void AAGPlayerState::SetInputAttackType(EAttackType AttackType)
+{
+	InputAttackType = AttackType;
+}
+
+EAttackType AAGPlayerState::GetInputAttackType()
+{
+	return InputAttackType;
+}
+
+void AAGPlayerState::SetAbilityComboAttack(UAGGameplayAbility_ComboAttack* Ability)
+{
+	Ability_ComboAttack = Ability;
+}
+
+UAGGameplayAbility_ComboAttack* AAGPlayerState::GetAbilityComboAttack()
+{
+	return Ability_ComboAttack;
+}
+
+void AAGPlayerState::SetMovementState(FGameplayTag State)
+{
+	AAGCharacter* Character = Cast<AAGCharacter>(GetPawn());
+	if (IsValid(Character))
+	{
+		Character->SetMovementStateTag(State);
+	}
 }

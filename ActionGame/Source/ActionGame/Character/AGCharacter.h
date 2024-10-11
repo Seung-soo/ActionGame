@@ -8,6 +8,8 @@
 #include "AbilitySystemInterface.h"
 #include "AGCharacter.generated.h"
 
+class UGameplayAbility;
+
 UCLASS()
 class ACTIONGAME_API AAGCharacter : public ACharacter, public IAbilitySystemInterface
 {
@@ -28,8 +30,11 @@ public:
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void InitAbilitySystem();
+	virtual void HandleGameplayEvent(FGameplayTag EventTag);
+	virtual void ActivateAbility(FGameplayTag AbilityTag) {}
 	
 	void AddCharacterAbilities();
+	TSubclassOf<UGameplayAbility> FindAbility(FGameplayTag GameplayTag);
 
 	void SetMovementStateTag(FGameplayTag Tag);
 	FGameplayTag GetMovementStateTag();
@@ -42,9 +47,9 @@ protected:
 	TObjectPtr<class UAGAttributeSet> AttributeSet;
 
 	UPROPERTY(EditAnywhere, Category=Abilities)
-	TArray<TSubclassOf<class UGameplayAbility>> StartupAbilities;
+	TMap<FGameplayTag ,TSubclassOf<UGameplayAbility>> StartupAbilities;
 
 protected:
-	/** 움직임 상태 태그 */
+	// 움직임 상태 태그
 	FGameplayTag MovementStateTag;
 };

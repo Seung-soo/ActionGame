@@ -16,8 +16,11 @@ class ACTIONGAME_API UAGAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
-	void AddCharacterAbilities(OUT const TArray<TSubclassOf<class UGameplayAbility>>& StartupAbilities);
+	void AddCharacterAbilities(OUT const TMap<FGameplayTag,TSubclassOf<class UGameplayAbility>>& StartupAbilities);
 	void ActivateAbility(FGameplayTag AbilityTag);
+	void CancelAbility(FGameplayTag AbilityTag);
+	UGameplayAbility* FindAbility(FGameplayTag AbilityTag);
+	FGameplayAbilitySpecHandle FindAbilitySpecHandle(FGameplayTag AbilityTag);
 
 	TArray<FGameplayAbilitySpecHandle> SpecHandles;
 };

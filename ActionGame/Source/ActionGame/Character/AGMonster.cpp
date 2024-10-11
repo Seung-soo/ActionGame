@@ -34,3 +34,8 @@ void AAGMonster::InitAbilitySystem()
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	}
 }
+
+void AAGMonster::HandleGameplayEvent(FGameplayTag EventTag)
+{
+	Super::HandleGameplayEvent(EventTag);
+}
