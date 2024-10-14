@@ -32,12 +32,18 @@ public:
 	virtual void InitAbilitySystem();
 	virtual void HandleGameplayEvent(FGameplayTag EventTag);
 	virtual void ActivateAbility(FGameplayTag AbilityTag) {}
-	
+
+public:
 	void AddCharacterAbilities();
 	TSubclassOf<UGameplayAbility> FindAbility(FGameplayTag GameplayTag);
 
+	void PerformAttack(AAGCharacter* Target);
+
 	void SetMovementStateTag(FGameplayTag Tag);
 	FGameplayTag GetMovementStateTag();
+
+	void BeginAttackTrace();
+	void EndAttackTrace();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -48,6 +54,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category=Abilities)
 	TMap<FGameplayTag ,TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+protected:
+	FVector CollStart = FVector::ZeroVector;
+	FVector CollEnd = FVector::ZeroVector;
+	float WeaponTraceRadius = 88.f;
 
 protected:
 	// 움직임 상태 태그

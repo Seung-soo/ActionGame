@@ -2,8 +2,8 @@
 
 
 #include "AGCharacter.h"
-
 #include "ActionGame/AbilitySystem/AGAbilitySystemComponent.h"
+#include "ActionGame/AbilitySystem/Effects/AGGameplayEffect_AttackDamage.h"
 
 // Sets default values
 AAGCharacter::AAGCharacter()
@@ -28,7 +28,6 @@ void AAGCharacter::BeginPlay()
 void AAGCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 UAbilitySystemComponent* AAGCharacter::GetAbilitySystemComponent() const
@@ -60,6 +59,40 @@ TSubclassOf<UGameplayAbility> AAGCharacter::FindAbility(FGameplayTag GameplayTag
 	return *StartupAbilities.Find(GameplayTag);
 }
 
+void AAGCharacter::PerformAttack(AAGCharacter* Target)
+{
+	if (false == IsValid(AbilitySystemComponent) || false == IsValid(Target))
+	{
+		return;
+	}
+
+	UAbilitySystemComponent* TargetAbilitySystemComponent = Target->GetAbilitySystemComponent();
+	if (false == IsValid(TargetAbilitySystemComponent))
+	{
+		return;
+	}
+
+	// AttackDamage Effect 생성
+	TSubclassOf<UAGGameplayEffect_AttackDamage> DamageEffectClass = UAGGameplayEffect_AttackDamage::StaticClass();
+	if (false == IsValid(DamageEffectClass))
+	{
+		return;
+	}
+
+	// 이펙트 컨텍스트 생성
+	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+	EffectContextHandle.AddSourceObject(this);
+	
+	// 이펙트 스펙 생성
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageEffectClass, 1.f, EffectContextHandle);
+
+	if (SpecHandle.IsValid())
+	{
+		// 이펙트 적용
+		Target->AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
+}
+
 void AAGCharacter::SetMovementStateTag(FGameplayTag Tag)
 {
 	MovementStateTag = Tag;
@@ -68,4 +101,49 @@ void AAGCharacter::SetMovementStateTag(FGameplayTag Tag)
 FGameplayTag AAGCharacter::GetMovementStateTag()
 {
 	return MovementStateTag;
+}
+
+void AAGCharacter::BeginAttackTrace()
+{
+	CollStart = GetActorLocation() + GetActorForwardVector() * WeaponTraceRadius;
+}
+
+void AAGCharacter::EndAttackTrace()
+{
+	// 이전 위치와 현재 위치 사이를 트레이스로 검사
+	TArray<FHitResult> HitResults;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	CollEnd = GetActorLocation() + GetActorForwardVector() * WeaponTraceRadius;
+
+	// 트레이스 수행
+	bool bHit = GetWorld()->SweepMultiByChannel(
+		HitResults,
+		CollStart,
+		CollEnd,
+		FQuat::Identity,
+		ECC_Pawn,
+		FCollisionShape::MakeSphere(WeaponTraceRadius),
+		Params
+	);
+
+
+
+	TArray<AActor*> HitActors;
+
+	if (bHit)
+	{
+		for (const FHitResult& HitResult : HitResults)
+		{
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor && !HitActors.Contains(HitActor))
+			{
+				HitActors.Add(HitActor);
+
+				// 데미지 적용 로직
+				PerformAttack(Cast<AAGCharacter>(HitActor));
+			}
+		}
+	}
 }
