@@ -30,13 +30,11 @@ public:
 	virtual void HandleGameplayEvent(FGameplayTag EventTag) override;
 	
 public:
-	virtual void ActivateAbility(FGameplayTag AbilityTag) override;
+	virtual void ActivateAbility(FGameplayTag AbilityTag) const override;
 
 	USpringArmComponent* GetSpringArmComponent();
 
-	void SelectAttackTarget();
-	void SetAttackTarget(ACharacter* Target);
-	ACharacter* GetAttackTarget();
+	virtual void SelectAttackTarget() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -47,8 +45,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class USphereComponent> CollisionSphere;
-	
-	// 타겟
-	UPROPERTY()
-	TObjectPtr<AAGMonster> AttackTarget;
 };

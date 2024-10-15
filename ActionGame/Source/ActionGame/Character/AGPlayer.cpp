@@ -112,7 +112,7 @@ void AAGPlayer::HandleGameplayEvent(FGameplayTag EventTag)
 	}
 }
 
-void AAGPlayer::ActivateAbility(FGameplayTag AbilityTag)
+void AAGPlayer::ActivateAbility(FGameplayTag AbilityTag) const
 {
 	Super::ActivateAbility(AbilityTag);
 	
@@ -126,6 +126,8 @@ USpringArmComponent* AAGPlayer::GetSpringArmComponent()
 
 void AAGPlayer::SelectAttackTarget()
 {
+	Super::SelectAttackTarget();
+	
 	if (false == IsValid(CollisionSphere))
 	{
 		return;
@@ -155,15 +157,5 @@ void AAGPlayer::SelectAttackTarget()
 		}
 	}
 
-	AttackTarget = ClosestMonster;
-}
-
-void AAGPlayer::SetAttackTarget(ACharacter* Target)
-{
-	AttackTarget = Cast<AAGMonster>(Target);
-}
-
-ACharacter* AAGPlayer::GetAttackTarget()
-{
-	return Cast<ACharacter>(AttackTarget);
+	AttackTarget = Cast<AAGCharacter>(ClosestMonster);
 }

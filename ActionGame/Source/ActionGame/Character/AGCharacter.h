@@ -31,7 +31,7 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void InitAbilitySystem();
 	virtual void HandleGameplayEvent(FGameplayTag EventTag);
-	virtual void ActivateAbility(FGameplayTag AbilityTag) {}
+	virtual void ActivateAbility(FGameplayTag AbilityTag) const {}
 
 public:
 	void AddCharacterAbilities();
@@ -45,15 +45,23 @@ public:
 	void BeginAttackTrace();
 	void EndAttackTrace();
 
+	virtual void SelectAttackTarget() {};
+	void SetAttackTarget(AAGCharacter* Target);
+	AAGCharacter* GetAttackTarget();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UAGAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Abilities)
 	TObjectPtr<class UAGAttributeSet> AttributeSet;
 
 	UPROPERTY(EditAnywhere, Category=Abilities)
 	TMap<FGameplayTag ,TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	// 타겟
+	UPROPERTY()
+	TObjectPtr<AAGCharacter> AttackTarget;
 
 protected:
 	FVector CollStart = FVector::ZeroVector;

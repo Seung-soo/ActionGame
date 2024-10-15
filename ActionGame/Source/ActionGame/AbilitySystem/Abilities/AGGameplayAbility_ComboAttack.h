@@ -19,19 +19,15 @@ class ACTIONGAME_API UAGGameplayAbility_ComboAttack : public UAGGameplayAbility
 public:
 	UAGGameplayAbility_ComboAttack();
 
-public:
-	// 다음 공격을 실행하거나 다음 공격을 실행하지 않고 애니메이션 종료까지 기다릴지 결정하는 함수
-	void DecideNextAttack();
-
 protected:
 	// 공격 애니메이션 몽타주 재생
 	void PlayAttackMontage(UAnimMontage* MontageToPlay);
 
 	// 콤보 패턴 결정 및 공격 실행
-	void ExecuteComboAttack(EAttackType InputAttackType);
+	void ExecuteComboAttack();
 
 	// 콤보 패턴 데이터 찾기
-	FAttackPatternData* FindAttackPattern(int32 ComboStep, EAttackType PrevAttack, EAttackType InputAttackType);
+	FAttackPatternData* FindAttackPattern();
 	
 	// 어빌리티 활성화 시 호출되는 함수
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -50,22 +46,40 @@ protected:
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
+	UFUNCTION()
+	void OnComboInputReceived(FGameplayEventData Payload);
+
+	UFUNCTION()
+	void OnSaveAttackNotifyReceived(FGameplayEventData Payload);
+
+	UFUNCTION()
+	void OnHitEnemyReceived(FGameplayEventData Payload);
+
 protected:
 	// 데이터 테이블 참조
 	UPROPERTY()
-	TObjectPtr<UDataTable> AttackPatternDataTable;
+	TObjectPtr<UDataTable> AttackPatternDataTable = nullptr;
 
 	UPROPERTY()
-	TObjectPtr<class AAGPlayerState> AGPlayerState;
+	TObjectPtr<class AAGPlayerState> AGPlayerState = nullptr;
 
 	UPROPERTY()
-	TObjectPtr<class AAGPlayer> AGPlayer;
+	TObjectPtr<class AAGPlayer> AGPlayer = nullptr;
 
-	// 현재 콤보 단계
-	int32 CurrentComboStep = 1;
+	UPROPERTY()
+	TObjectPtr<class UAbilityTask_WaitGameplayEvent> InputWaitTask = nullptr;
+	
+	UPROPERTY()
+	TObjectPtr<class UAbilityTask_WaitGameplayEvent> SaveAttackNotifyTask = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<class UAbilityTask_WaitGameplayEvent> HitEnemyTask = nullptr;
 
 	// 이전 공격 타입
-	EAttackType PreviousAttackType = EAttackType::None;
+	FGameplayTag PreviousAttackType = FGameplayTag::EmptyTag;
+
+	// 입력 받은 공격 타입
+	EAttackType InputAttackType = EAttackType::None;
 
 	bool IsFinish = false;
 };

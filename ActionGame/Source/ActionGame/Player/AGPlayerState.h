@@ -32,9 +32,6 @@ public:
 	void SetInputAttackType(EAttackType AttackType);
 	EAttackType GetInputAttackType();
 
-	void SetAbilityComboAttack(UAGGameplayAbility_ComboAttack* Ability);
-	UAGGameplayAbility_ComboAttack* GetAbilityComboAttack();
-
 	void SetMovementState(FGameplayTag State);
 
 protected:
@@ -46,7 +43,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EAttackType InputAttackType;
-
-	UPROPERTY()
-	TObjectPtr<UAGGameplayAbility_ComboAttack> Ability_ComboAttack; 
 };

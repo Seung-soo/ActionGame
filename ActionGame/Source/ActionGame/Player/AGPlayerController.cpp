@@ -62,10 +62,10 @@ void AAGPlayerController::SetupInputComponent()
 		const UInputAction* ActionBlock = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_Block);
 		EnhancedInputComponent->BindAction(ActionBlock, ETriggerEvent::Started, this, &ThisClass::Input_Block);
 		
-		const UInputAction* ActionLightAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_LightAttack);
+		const UInputAction* ActionLightAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_Attack_Light);
 		EnhancedInputComponent->BindAction(ActionLightAttack, ETriggerEvent::Started, this, &ThisClass::Input_LightAttack);
 
-		const UInputAction* ActionHeavyAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_HeavyAttack);
+		const UInputAction* ActionHeavyAttack = InputData->FindInputActionByTag(AGGameplayTags::Input_Action_Attack_Heavy);
 		EnhancedInputComponent->BindAction(ActionHeavyAttack, ETriggerEvent::Started, this, &ThisClass::Input_HeavyAttack);
 
 		const UInputAction* ActionLook = InputData->FindInputActionByTag(AGGameplayTags::Input_Camera_Look);
@@ -130,19 +130,30 @@ void AAGPlayerController::Input_LightAttack(const FInputActionValue& InputValue)
 	{
 		return;
 	}
-	
+
 	AAGPlayerState* AGPlayerState = GetPlayerState<AAGPlayerState>();
-	if (IsValid(AGPlayerState))
+	if (false == IsValid(AGPlayerState))
 	{
-		AGPlayerState->SetInputAttackType(EAttackType::Light);
+		return;
 	}
 
-	UGameplayAbility* Ability = AGPlayerState->GetAbilityComboAttack();
-	if (IsValid(AGPlayer) && false == IsValid(Ability))
+	if (AGPlayer->GetAbilitySystemComponent())
 	{
-		// 내부적으로 이미 활성화되어 있으면 활성화 시키지 않는 로직이 있다
-		AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
+		// GameplayEvent 데이터를 생성합니다.
+		FGameplayEventData EventData;
+		EventData.Instigator = AGPlayer;  // 이벤트를 일으킨 캐릭터
+		EventData.Target = AGPlayer;      // 대상 캐릭터 (필요시 수정 가능)
+		EventData.TargetTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack.Light")));
+
+		// 이벤트를 AbilitySystemComponent에서 트리거합니다.
+		AGPlayer->GetAbilitySystemComponent()->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack")), &EventData);
 	}
+
+	AGPlayerState->SetInputAttackType(EAttackType::Light);
+	
+	AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
+	
+	AGPlayerState->SetInputAttackType(EAttackType::None);
 }
 
 void AAGPlayerController::Input_HeavyAttack(const FInputActionValue& InputValue)
@@ -151,19 +162,38 @@ void AAGPlayerController::Input_HeavyAttack(const FInputActionValue& InputValue)
 	{
 		return;
 	}
+
+	if (false == IsValid(AGPlayer))
+	{
+		return;
+	}
 	
 	AAGPlayerState* AGPlayerState = GetPlayerState<AAGPlayerState>();
-	if (IsValid(AGPlayerState))
+	if (false == IsValid(AGPlayerState))
 	{
-		AGPlayerState->SetInputAttackType(EAttackType::Heavy);
+		return;
 	}
 
-	UGameplayAbility* Ability = AGPlayerState->GetAbilityComboAttack();
-	if (IsValid(AGPlayer) && false == IsValid(Ability))
+	UAbilitySystemComponent* AbilitySystemComponent = AGPlayer->GetAbilitySystemComponent();
+	if (false == IsValid(AbilitySystemComponent))
 	{
-		// 내부적으로 이미 활성화되어 있으면 활성화 시키지 않는 로직이 있다
-		AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
+		return;
 	}
+	
+	// GameplayEvent 데이터를 생성합니다.
+	FGameplayEventData EventData;
+	EventData.Instigator = this; // 이벤트를 일으킨 캐릭터
+	EventData.Target = this; // 대상 캐릭터 (필요시 수정 가능)
+	EventData.TargetTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack.Heavy")));
+
+	// 이벤트를 AbilitySystemComponent에서 트리거합니다.
+	AbilitySystemComponent->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack")), &EventData);
+	
+	AGPlayerState->SetInputAttackType(EAttackType::Heavy);
+	
+	AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
+
+	AGPlayerState->SetInputAttackType(EAttackType::None);
 }
 
 void AAGPlayerController::Input_Look(const FInputActionValue& InputValue)
@@ -206,42 +236,23 @@ void AAGPlayerController::HandleGameplayEvent_SaveAttack()
 	{
 		return;
 	}
-	
-	UAGGameplayAbility_ComboAttack* ComboAttackAbility = AGPlayerState->GetAbilityComboAttack();
 
-	if (IsValid(ComboAttackAbility) && true == ComboAttackAbility->IsActive())
+	if (AGPlayer->GetAbilitySystemComponent())
 	{
-		ComboAttackAbility->DecideNextAttack();
-	}
-	//TArray<FGameplayAbilitySpec> ActiveAbilities = AbilitySystemComponent->GetActivatableAbilities();
+		// GameplayEvent 데이터를 생성합니다.
+		FGameplayEventData EventData;
+		EventData.Instigator = AGPlayer;  // 이벤트를 일으킨 캐릭터
+		EventData.Target = AGPlayer;      // 대상 캐릭터 (필요시 수정 가능)
 
-	// 현재 실행 중인 어빌리티들을 검색
-	// for (FGameplayAbilitySpec AbilitySpec : ActiveAbilities)
+		// 이벤트를 AbilitySystemComponent에서 트리거합니다.
+		AGPlayer->GetAbilitySystemComponent()->HandleGameplayEvent(AGGameplayTags::Event_Montage_SaveAttack, &EventData);
+	}
+	
+	// UAGGameplayAbility_ComboAttack* ComboAttackAbility = AGPlayerState->GetAbilityComboAttack();
+	//
+	// if (IsValid(ComboAttackAbility) && true == ComboAttackAbility->IsActive())
 	// {
-	// 	if (false == AbilitySpec.IsActive()) // 활성화된 어빌리티인지 확인
-	// 	{
-	// 		continue;
-	// 	}
-	//
-	// 	UGameplayAbility* ActiveAbility = AbilitySpec.Ability;
-	// 	if (false == IsValid(ActiveAbility))
-	// 	{
-	// 		continue;
-	// 	}
-	//
-	// 	// 태그 확인
-	// 	bool bHasTag = ActiveAbility->AbilityTags.HasTag(AGGameplayTags::Ability_ComboAttack);
-	// 	if (false == bHasTag)
-	// 	{
-	// 		continue;
-	// 	}
-	//
-	// 	// 이 노티파이가 들어올 때까지 다음 공격 입력이 들어왔는지 확인하는 함수 호출
-	// 	UAGGameplayAbility_ComboAttack* ComboAttackAbility = Cast<UAGGameplayAbility_ComboAttack>(ActiveAbility);
-	// 	if (IsValid(ComboAttackAbility))
-	// 	{
-	// 		ComboAttackAbility->DecideNextAttack();
-	// 	}
+	// 	ComboAttackAbility->DecideNextAttack();
 	// }
 }
 
@@ -259,8 +270,6 @@ void AAGPlayerController::HandleGameplayEvent_RollFinish()
 	}
 
 	AbilitySystemComponent->CancelAbility(AGGameplayTags::Ability_Roll);
-	
-	//AGPlayer->SetMovementStateTag(AGGameplayTags::State_Movement_Run);
 }
 
 void AAGPlayerController::RotateCharacterToTarget()
@@ -272,7 +281,7 @@ void AAGPlayerController::RotateCharacterToTarget()
 
 	FVector Direction = FVector::ZeroVector;
 
-	ACharacter* Target = AGPlayer->GetAttackTarget();
+	AAGCharacter* Target = AGPlayer->GetAttackTarget();
 	if (IsValid(Target))
 	{
 		// 타겟 방향으로 회전

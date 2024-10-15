@@ -11,8 +11,8 @@ namespace AGGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_Move);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_Roll);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_Block);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_LightAttack);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_HeavyAttack);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_Attack_Light);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Action_Attack_Heavy);
 	
 	// Camera
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Input_Camera_Look);
@@ -34,8 +34,21 @@ namespace AGGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_SaveAttack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Montage_RollFinish);
 
+	// Hit
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit_Enemy);
+
 	/**** Ability ****/
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ComboAttack);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Roll);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Hit);
+
+	/**** Animation ****/
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Animation_Attack_Light_First);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Animation_Attack_Light_Second);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Animation_Attack_Light_Third);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Animation_Attack_Light_Fourth);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Animation_Attack_Heavy_First);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Animation_Attack_Heavy_Second);
+
 	
 }

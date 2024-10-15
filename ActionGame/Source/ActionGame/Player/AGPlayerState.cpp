@@ -38,16 +38,6 @@ EAttackType AAGPlayerState::GetInputAttackType()
 	return InputAttackType;
 }
 
-void AAGPlayerState::SetAbilityComboAttack(UAGGameplayAbility_ComboAttack* Ability)
-{
-	Ability_ComboAttack = Ability;
-}
-
-UAGGameplayAbility_ComboAttack* AAGPlayerState::GetAbilityComboAttack()
-{
-	return Ability_ComboAttack;
-}
-
 void AAGPlayerState::SetMovementState(FGameplayTag State)
 {
 	AAGCharacter* Character = Cast<AAGCharacter>(GetPawn());

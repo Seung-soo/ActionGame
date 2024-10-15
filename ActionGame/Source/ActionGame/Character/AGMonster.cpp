@@ -39,3 +39,10 @@ void AAGMonster::HandleGameplayEvent(FGameplayTag EventTag)
 {
 	Super::HandleGameplayEvent(EventTag);
 }
+
+void AAGMonster::ActivateAbility(FGameplayTag AbilityTag) const
+{
+	Super::ActivateAbility(AbilityTag);
+	
+	AbilitySystemComponent->ActivateAbility(AbilityTag);
+}

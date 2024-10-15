@@ -2,6 +2,8 @@
 
 
 #include "AGCharacter.h"
+
+#include "ActionGame/AGGamplayTags.h"
 #include "ActionGame/AbilitySystem/AGAbilitySystemComponent.h"
 #include "ActionGame/AbilitySystem/Effects/AGGameplayEffect_AttackDamage.h"
 
@@ -65,32 +67,42 @@ void AAGCharacter::PerformAttack(AAGCharacter* Target)
 	{
 		return;
 	}
-
-	UAbilitySystemComponent* TargetAbilitySystemComponent = Target->GetAbilitySystemComponent();
-	if (false == IsValid(TargetAbilitySystemComponent))
-	{
-		return;
-	}
-
-	// AttackDamage Effect 생성
-	TSubclassOf<UAGGameplayEffect_AttackDamage> DamageEffectClass = UAGGameplayEffect_AttackDamage::StaticClass();
-	if (false == IsValid(DamageEffectClass))
-	{
-		return;
-	}
-
-	// 이펙트 컨텍스트 생성
-	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-	EffectContextHandle.AddSourceObject(this);
+	//
+	// UAbilitySystemComponent* TargetAbilitySystemComponent = Target->GetAbilitySystemComponent();
+	// if (false == IsValid(TargetAbilitySystemComponent))
+	// {
+	// 	return;
+	// }
+	//
+	// // AttackDamage Effect 생성
+	// TSubclassOf<UAGGameplayEffect_AttackDamage> DamageEffectClass = UAGGameplayEffect_AttackDamage::StaticClass();
+	// if (false == IsValid(DamageEffectClass))
+	// {
+	// 	return;
+	// }
+	//
+	// // 이펙트 컨텍스트 생성
+	// FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+	// EffectContextHandle.AddSourceObject(this);
+	//
+	// // 이펙트 스펙 생성
+	// FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageEffectClass, 1.f, EffectContextHandle);
+	//
+	// if (SpecHandle.IsValid())
+	// {
+	// 	// 이펙트 적용
+	// 	TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	// }
+	//
+	// Target->ActivateAbility(AGGameplayTags::Ability_Hit);
 	
-	// 이펙트 스펙 생성
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageEffectClass, 1.f, EffectContextHandle);
-
-	if (SpecHandle.IsValid())
-	{
-		// 이펙트 적용
-		Target->AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	}
+	// 피격 애니메이션을 위해 타겟에게 이벤트 발생 시킴
+	FGameplayEventData EventData;
+	EventData.Instigator = this; // 이벤트를 일으킨 캐릭터
+	EventData.Target = Target; // 대상 캐릭터 (필요시 수정 가능)
+	EventData.EventTag = FGameplayTag::RequestGameplayTag(FName("Event.Hit.Enemy"));
+	
+	AbilitySystemComponent->HandleGameplayEvent(EventData.EventTag, &EventData);
 }
 
 void AAGCharacter::SetMovementStateTag(FGameplayTag Tag)
@@ -146,4 +158,14 @@ void AAGCharacter::EndAttackTrace()
 			}
 		}
 	}
+}
+
+void AAGCharacter::SetAttackTarget(AAGCharacter* Target)
+{
+	AttackTarget = Target;
+}
+
+AAGCharacter* AAGCharacter::GetAttackTarget()
+{
+	return AttackTarget;
 }
