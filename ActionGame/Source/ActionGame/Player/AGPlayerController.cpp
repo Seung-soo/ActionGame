@@ -109,11 +109,6 @@ void AAGPlayerController::Input_Move(const FInputActionValue& InputValue)
 
 void AAGPlayerController::Input_Roll(const FInputActionValue& InputValue)
 {
- 	if (AGPlayer->GetMovementStateTag().MatchesTag(AGGameplayTags::State_Movement_Block))
-	{
-		return;
-	}
-	
 	if (IsValid(AGPlayer))
 	{
 		AGPlayer->ActivateAbility(AGGameplayTags::Ability_Roll);
@@ -126,11 +121,6 @@ void AAGPlayerController::Input_Block(const FInputActionValue& InputValue)
 
 void AAGPlayerController::Input_LightAttack(const FInputActionValue& InputValue)
 {
-	if (FGameplayTag::RequestGameplayTag(TEXT("State.Movement.Block.Roll")) == AGPlayer->GetMovementStateTag())
-	{
-		return;
-	}
-
 	AAGPlayerState* AGPlayerState = GetPlayerState<AAGPlayerState>();
 	if (false == IsValid(AGPlayerState))
 	{
@@ -158,11 +148,6 @@ void AAGPlayerController::Input_LightAttack(const FInputActionValue& InputValue)
 
 void AAGPlayerController::Input_HeavyAttack(const FInputActionValue& InputValue)
 {
-	if (FGameplayTag::RequestGameplayTag(TEXT("State.Movement.Block.Roll")) == AGPlayer->GetMovementStateTag())
-	{
-		return;
-	}
-
 	if (false == IsValid(AGPlayer))
 	{
 		return;
@@ -198,7 +183,7 @@ void AAGPlayerController::Input_HeavyAttack(const FInputActionValue& InputValue)
 
 void AAGPlayerController::Input_Look(const FInputActionValue& InputValue)
 {
-	if (!IsValid(AGPlayer))
+	if (false == IsValid(AGPlayer))
 	{
 		return;
 	}
@@ -268,7 +253,7 @@ void AAGPlayerController::HandleGameplayEvent_RollFinish()
 	{
 		return;
 	}
-
+	
 	AbilitySystemComponent->CancelAbility(AGGameplayTags::Ability_Roll);
 }
 
@@ -345,4 +330,12 @@ FVector AAGPlayerController::GetInputDirection()
 	}
 
 	return Direction;
+}
+
+void AAGPlayerController::PlayHitCameraShake()
+{
+	if (IsValid(HitCameraShakeClass))
+	{
+		ClientStartCameraShake(HitCameraShakeClass, 1.f, ECameraShakePlaySpace::CameraLocal);
+	}
 }

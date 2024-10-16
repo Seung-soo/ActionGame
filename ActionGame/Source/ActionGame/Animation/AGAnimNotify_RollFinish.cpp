@@ -4,6 +4,7 @@
 #include "AGAnimNotify_RollFinish.h"
 #include "../Character/AGCharacter.h"
 #include "ActionGame/AGGamplayTags.h"
+#include "ActionGame/Player/AGPlayerController.h"
 
 UAGAnimNotify_RollFinish::UAGAnimNotify_RollFinish(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

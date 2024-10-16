@@ -28,7 +28,7 @@ void UAGAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	
-	if (!IsValid(MovementComponent) || !IsValid(Character))
+	if (false == IsValid(MovementComponent) || false == IsValid(Character))
 	{
 		return;
 	}

@@ -2,10 +2,8 @@
 
 
 #include "AGCharacter.h"
-
-#include "ActionGame/AGGamplayTags.h"
 #include "ActionGame/AbilitySystem/AGAbilitySystemComponent.h"
-#include "ActionGame/AbilitySystem/Effects/AGGameplayEffect_AttackDamage.h"
+#include "MotionWarpingComponent.h"
 
 // Sets default values
 AAGCharacter::AAGCharacter()
@@ -13,6 +11,7 @@ AAGCharacter::AAGCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 }
 
 // Called when the game starts or when spawned
@@ -67,34 +66,6 @@ void AAGCharacter::PerformAttack(AAGCharacter* Target)
 	{
 		return;
 	}
-	//
-	// UAbilitySystemComponent* TargetAbilitySystemComponent = Target->GetAbilitySystemComponent();
-	// if (false == IsValid(TargetAbilitySystemComponent))
-	// {
-	// 	return;
-	// }
-	//
-	// // AttackDamage Effect 생성
-	// TSubclassOf<UAGGameplayEffect_AttackDamage> DamageEffectClass = UAGGameplayEffect_AttackDamage::StaticClass();
-	// if (false == IsValid(DamageEffectClass))
-	// {
-	// 	return;
-	// }
-	//
-	// // 이펙트 컨텍스트 생성
-	// FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-	// EffectContextHandle.AddSourceObject(this);
-	//
-	// // 이펙트 스펙 생성
-	// FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DamageEffectClass, 1.f, EffectContextHandle);
-	//
-	// if (SpecHandle.IsValid())
-	// {
-	// 	// 이펙트 적용
-	// 	TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	// }
-	//
-	// Target->ActivateAbility(AGGameplayTags::Ability_Hit);
 	
 	// 피격 애니메이션을 위해 타겟에게 이벤트 발생 시킴
 	FGameplayEventData EventData;
@@ -140,10 +111,13 @@ void AAGCharacter::EndAttackTrace()
 		Params
 	);
 
+	FVector Center = (CollStart + CollEnd) * 0.5f;
+	float HalfHeight = ((Center - CollStart) * 0.5f).Length() + WeaponTraceRadius;
+	FQuat Rotation = FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat();
+	FColor DrawColor;
 
-
+	
 	TArray<AActor*> HitActors;
-
 	if (bHit)
 	{
 		for (const FHitResult& HitResult : HitResults)
@@ -157,7 +131,15 @@ void AAGCharacter::EndAttackTrace()
 				PerformAttack(Cast<AAGCharacter>(HitActor));
 			}
 		}
+
+		DrawColor = FColor::Red;
 	}
+	else
+	{
+		DrawColor = FColor::Green;
+	}
+
+	DrawDebugCapsule(GetWorld(), Center, HalfHeight, WeaponTraceRadius, Rotation, DrawColor, false, 0.5f);
 }
 
 void AAGCharacter::SetAttackTarget(AAGCharacter* Target)

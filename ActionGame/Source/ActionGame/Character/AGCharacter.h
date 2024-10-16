@@ -59,6 +59,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category=Abilities)
 	TMap<FGameplayTag ,TSubclassOf<UGameplayAbility>> StartupAbilities;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UMotionWarpingComponent> MotionWarpingComponent;
+
 	// 타겟
 	UPROPERTY()
 	TObjectPtr<AAGCharacter> AttackTarget;

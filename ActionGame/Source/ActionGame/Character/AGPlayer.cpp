@@ -4,6 +4,7 @@
 #include "AGPlayer.h"
 
 #include "AGMonster.h"
+#include "MotionWarpingComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -13,6 +14,8 @@
 #include "../AbilitySystem/Attributes/AGPlayerSet.h"
 #include "../Player/AGPlayerState.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 AAGPlayer::AAGPlayer() : Super()
 {
@@ -34,7 +37,7 @@ AAGPlayer::AAGPlayer() : Super()
 		SpringArm->SetupAttachment(GetCapsuleComponent());
 		SpringArm->SetRelativeLocation(FVector(0.f, 0.f, 100.f));
 		SpringArm->SetRelativeRotation(FRotator(-60.f, 0.f, 0.f));
-		SpringArm->TargetArmLength = 300.0f;
+		SpringArm->TargetArmLength = CurrentTargetArmLength;
 		SpringArm->bUsePawnControlRotation = true;
 	}
 
@@ -99,6 +102,27 @@ void AAGPlayer::Tick(float DeltaTime)
 	{
 		AbilitySystemComponent->RemoveLooseGameplayTag(MovementStateTag);
 	}
+
+	
+	if (IsValid(SpringArm))
+	{
+		// TargetArmLength 보간
+		CurrentTargetArmLength = FMath::FInterpTo(CurrentTargetArmLength, TargetArmLength, DeltaTime, ArmLengthInterpSpeed);
+		SpringArm->TargetArmLength = CurrentTargetArmLength;
+	}
+
+	if (IsValid(Camera))
+	{
+		// 채도 값 보간
+		CurrentSaturation = FMath::FInterpTo(CurrentSaturation, TargetSaturation, DeltaTime, SaturationInterpSpeed);
+
+		// 카메라의 포스트 프로세싱 설정 업데이트
+		FPostProcessSettings& PostProcessSettings = Camera->PostProcessSettings;
+		if (PostProcessSettings.bOverride_ColorSaturation)
+		{
+			PostProcessSettings.ColorSaturation = FVector4(CurrentSaturation, CurrentSaturation, CurrentSaturation, 1.0f);
+		}
+	}
 }
 
 void AAGPlayer::HandleGameplayEvent(FGameplayTag EventTag)
@@ -158,4 +182,81 @@ void AAGPlayer::SelectAttackTarget()
 	}
 
 	AttackTarget = Cast<AAGCharacter>(ClosestMonster);
+}
+
+void AAGPlayer::RollMotionWarping()
+{
+	if (false == IsValid(MotionWarpingComponent))
+	{
+		return;
+	}
+
+	FVector TargetLocation = GetActorLocation() + GetActorForwardVector() * DesiredRollDistance;
+	FTransform MyTransform = GetTransform();
+	MyTransform.SetLocation(TargetLocation);
+	MotionWarpingComponent->AddOrUpdateWarpTargetFromTransform(FName("RollTarget"), MyTransform);
+}
+
+void AAGPlayer::SetTargetArmLength(float Length)
+{
+	if (IsValid(SpringArm))
+	{
+		SpringArm->TargetArmLength = Length;
+	}
+}
+
+void AAGPlayer::PlayRollCamera()
+{
+	TargetArmLength = 500.0f;
+	GetWorldTimerManager().SetTimer(RollTimerHandle, this, &AAGPlayer::ResetCameraSetting, 0.2f, false);
+}
+
+void AAGPlayer::ResetCameraSetting()
+{
+	TargetArmLength = 300.0f;
+}
+
+void AAGPlayer::StartSlowMotion(float SlowDownFactor, float Duration)
+{
+	// 시간 지연 설정
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), SlowDownFactor);
+
+	// 슬로우 모션 종료를 위한 타이머 설정
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AAGPlayer::StopSlowMotion, Duration * SlowDownFactor, false);
+
+	if (IsValid(Camera))
+	{
+		// 카메라의 포스트 프로세싱 설정에서 채도(Saturation)를 조절
+		FPostProcessSettings& PostProcessSettings = Camera->PostProcessSettings;
+		PostProcessSettings.bOverride_ColorSaturation = true;
+		PostProcessSettings.ColorSaturation = FVector4(0.0f, 0.0f, 0.0f, 1.0f); // RGB 채도를 0으로 설정하여 무채색으로 만듦
+		TargetSaturation = 0.0f; // 무채색으로 목표 설정
+	}
+}
+
+void AAGPlayer::StopSlowMotion()
+{
+	// 시간 지연을 원래대로 복구
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+
+	if (IsValid(Camera))
+	{
+		// 카메라의 포스트 프로세싱 설정 복구
+		FPostProcessSettings& PostProcessSettings = Camera->PostProcessSettings;
+		PostProcessSettings.ColorSaturation = FVector4(1.0f, 1.0f, 1.0f, 1.0f); // RGB 채도를 원래대로 복구
+		TargetSaturation = 1.0f; // 원래 색상으로 복귀
+	}
+
+	// 슬로우 모션 종료 후 일정 시간 후에 포스트 프로세싱 오버라이드를 해제
+	FTimerHandle PostProcessTimerHandle;
+	GetWorldTimerManager().SetTimer(PostProcessTimerHandle, this, &AAGPlayer::ResetPostProcessSettings, 0.2f, false);
+}
+
+void AAGPlayer::ResetPostProcessSettings()
+{
+	if (IsValid(Camera))
+	{
+		Camera->PostProcessSettings.bOverride_ColorSaturation = false;
+	}
 }

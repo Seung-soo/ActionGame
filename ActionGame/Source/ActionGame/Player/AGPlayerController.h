@@ -45,9 +45,14 @@ public:
 	// 입력된 방향을 체크하는 함수
 	FVector GetInputDirection();
 
+	void PlayHitCameraShake();
+
 protected:
 	UPROPERTY(BlueprintReadOnly)
 	TObjectPtr<class AAGPlayer> AGPlayer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	TSubclassOf<UCameraShakeBase> HitCameraShakeClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MouseSensitivity_X = 1.f;

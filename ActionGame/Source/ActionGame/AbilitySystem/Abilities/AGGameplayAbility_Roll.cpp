@@ -3,10 +3,11 @@
 
 #include "AGGameplayAbility_Roll.h"
 
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "ActionGame/AGGamplayTags.h"
+#include "ActionGame/Character/AGPlayer.h"
 #include "ActionGame/Player/AGPlayerController.h"
 #include "ActionGame/Player/AGPlayerState.h"
-#include "GameFramework/Character.h"
 
 UAGGameplayAbility_Roll::UAGGameplayAbility_Roll()
 {
@@ -15,6 +16,14 @@ UAGGameplayAbility_Roll::UAGGameplayAbility_Roll()
 
 	// AbilityTags에 원하는 태그 추가
 	AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Ability.Roll")));
+
+	// 이미 활성화된 상태에서 또 활성화되지 않게
+	BlockAbilitiesWithTag.AddTag(AGGameplayTags::Ability_ComboAttack);
+	BlockAbilitiesWithTag.AddTag(AGGameplayTags::Ability_Roll);
+	BlockAbilitiesWithTag.AddTag(AGGameplayTags::Ability_Hit);
+
+	// 이 어빌리티가 활성화 될 때 취소할 어빌리티들
+	CancelAbilitiesWithTag.AddTag(AGGameplayTags::Ability_ComboAttack);
 }
 
 void UAGGameplayAbility_Roll::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
@@ -24,7 +33,8 @@ void UAGGameplayAbility_Roll::ActivateAbility(const FGameplayAbilitySpecHandle H
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	AAGPlayerController* Controller = Cast<AAGPlayerController>(ActorInfo->PlayerController);
-	ACharacter* Player = Cast<ACharacter>(ActorInfo->AvatarActor);
+	Player = Cast<AAGPlayer>(ActorInfo->AvatarActor);
+	
 	if (false == IsValid(Controller) || false == IsValid(Player))
 	{
 		return;
@@ -41,8 +51,13 @@ void UAGGameplayAbility_Roll::ActivateAbility(const FGameplayAbilitySpecHandle H
 	{
 		Player->SetActorRotation(Direction.Rotation());
 	}
+	
 	Player->PlayAnimMontage(RollMontage);
-		
+
+	Player->RollMotionWarping();
+
+	Player->PlayRollCamera();
+
 	FOnMontageEnded MontageEnded;
 	MontageEnded.BindUObject(this, &ThisClass::OnMontageEnded);
 	AnimInstance->Montage_SetEndDelegate(MontageEnded, RollMontage);
@@ -53,7 +68,7 @@ void UAGGameplayAbility_Roll::ActivateAbility(const FGameplayAbilitySpecHandle H
 		return;
 	}
 
-	AGPlayerState->SetMovementState(AGGameplayTags::State_Movement_Block_Roll);
+	AGPlayerState->SetMovementState(AGGameplayTags::State_Movement_Block);
 }
 
 void UAGGameplayAbility_Roll::EndAbility(const FGameplayAbilitySpecHandle Handle,
@@ -67,6 +82,8 @@ void UAGGameplayAbility_Roll::EndAbility(const FGameplayAbilitySpecHandle Handle
 	{
 		return;
 	}
+
+	Player->SetTargetArmLength(300.f);
 
 	AGPlayerState->SetMovementState(AGGameplayTags::State_Movement_Idle);
 }

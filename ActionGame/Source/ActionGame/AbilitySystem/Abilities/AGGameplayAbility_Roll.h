@@ -38,4 +38,7 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category=Montage)
 	TObjectPtr<UAnimMontage> RollMontage;
+
+	UPROPERTY()
+	TObjectPtr<class AAGPlayer> Player;
 };

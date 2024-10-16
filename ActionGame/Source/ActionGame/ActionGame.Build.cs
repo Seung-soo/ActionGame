@@ -20,6 +20,7 @@ public class ActionGame : ModuleRules
 			"NavigationSystem",
 			"AIModule",
 			"Niagara",
+			"MotionWarping",
 			"UMG",
 		});
 

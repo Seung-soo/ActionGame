@@ -26,6 +26,7 @@ UAGGameplayAbility_Hit::UAGGameplayAbility_Hit()
 
 	// 이 어빌리티가 활성화 될 때 취소할 어빌리티들
 	CancelAbilitiesWithTag.AddTag(AGGameplayTags::Ability_Hit);
+	CancelAbilitiesWithTag.AddTag(AGGameplayTags::Ability_ComboAttack);
 }
 
 void UAGGameplayAbility_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Handle,

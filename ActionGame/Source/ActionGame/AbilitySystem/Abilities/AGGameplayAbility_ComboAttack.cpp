@@ -253,6 +253,11 @@ void UAGGameplayAbility_ComboAttack::OnHitEnemyReceived(FGameplayEventData Paylo
 	{
 		return;
 	}
+
+	if (false == IsValid(AGPlayer))
+	{
+		return;
+	}
 	
 	UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo();
 	if (false == IsValid(AbilitySystemComponent))
@@ -302,4 +307,14 @@ void UAGGameplayAbility_ComboAttack::OnHitEnemyReceived(FGameplayEventData Paylo
 	EventData.TargetTags.AddTag(PreviousAttackType);
 	
 	TargetAbilitySystemComponent->HandleGameplayEvent(EventData.EventTag, &EventData);
+
+	// 카메라 쉐이크
+	AAGPlayerController* Controller = Cast<AAGPlayerController>(AGPlayer->GetController());
+	if (IsValid(Controller))
+	{
+		Controller->PlayHitCameraShake();
+	}
+
+	// 슬로우 모션
+	AGPlayer->StartSlowMotion(0.25f, 0.2f);
 }

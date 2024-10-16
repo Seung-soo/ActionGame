@@ -36,6 +36,17 @@ public:
 
 	virtual void SelectAttackTarget() override;
 
+	void RollMotionWarping();
+
+	void SetTargetArmLength(float Length);
+
+	void PlayRollCamera();
+	void ResetCameraSetting();
+
+	void StartSlowMotion(float SlowDownFactor, float Duration);
+	void StopSlowMotion();
+	void ResetPostProcessSettings();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<USpringArmComponent> SpringArm;
@@ -45,4 +56,30 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class USphereComponent> CollisionSphere;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float DesiredRollDistance = 500.f;
+
+	// 구르기 카메라 보간 속도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float ArmLengthInterpSpeed = 8.f;
+
+	// 카메라 타겟 거리 (현재 값)
+	float CurrentTargetArmLength = 300.f;
+
+	// 타겟 ArmLength (목표 값)
+	float TargetArmLength = 300.f;
+
+	// 채도 보간 속도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	float SaturationInterpSpeed = 50.0f;
+
+	// 현재 채도 값
+	float CurrentSaturation = 1.f;
+
+	// 목표 채도 값
+	float TargetSaturation = 1.f;
+
+	FTimerHandle RollTimerHandle = {};
+	FTimerHandle SlowMotionimerHandle = {};
 };
