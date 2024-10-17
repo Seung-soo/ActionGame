@@ -52,5 +52,5 @@ private:
 	float TotalPushbackDistance = 0.f;
 
 	UPROPERTY()
-	TObjectPtr<class ACharacter> MyCharacter = nullptr;
+	TObjectPtr<class AAGCharacter> MyCharacter = nullptr;
 };

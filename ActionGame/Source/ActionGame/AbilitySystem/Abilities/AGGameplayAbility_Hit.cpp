@@ -43,7 +43,12 @@ void UAGGameplayAbility_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 		AttackTypeTask->ReadyForActivation();
 	}
 
-	MyCharacter = Cast<ACharacter>(ActorInfo->AvatarActor);
+	MyCharacter = Cast<AAGCharacter>(ActorInfo->AvatarActor);
+
+	if (IsValid(MyCharacter))
+	{
+		MyCharacter->RefreshHpBarRatio();
+	}
 }
 
 void UAGGameplayAbility_Hit::EndAbility(const FGameplayAbilitySpecHandle Handle,

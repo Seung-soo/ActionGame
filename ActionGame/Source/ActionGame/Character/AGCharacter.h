@@ -49,6 +49,8 @@ public:
 	void SetAttackTarget(AAGCharacter* Target);
 	AAGCharacter* GetAttackTarget();
 
+	void RefreshHpBarRatio();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UAGAbilitySystemComponent> AbilitySystemComponent;
@@ -61,6 +63,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UMotionWarpingComponent> MotionWarpingComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class UWidgetComponent> HpBarWidgetComponent;
 
 	// 타겟
 	UPROPERTY()

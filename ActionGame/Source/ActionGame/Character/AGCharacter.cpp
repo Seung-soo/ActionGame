@@ -4,6 +4,9 @@
 #include "AGCharacter.h"
 #include "ActionGame/AbilitySystem/AGAbilitySystemComponent.h"
 #include "MotionWarpingComponent.h"
+#include "ActionGame/AbilitySystem/Attributes/AGAttributeSet.h"
+#include "Components/WidgetComponent.h"
+#include "../Widget/AGWidget_HpBar.h"
 
 // Sets default values
 AAGCharacter::AAGCharacter()
@@ -12,6 +15,15 @@ AAGCharacter::AAGCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+	HpBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HpBarWidget"));
+
+	if (IsValid(HpBarWidgetComponent))
+	{
+		HpBarWidgetComponent->SetupAttachment(RootComponent);
+		HpBarWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+		HpBarWidgetComponent->SetDrawAtDesiredSize(true);
+		HpBarWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	}
 }
 
 // Called when the game starts or when spawned
@@ -22,6 +34,7 @@ void AAGCharacter::BeginPlay()
 	// 움직임 상태 태그 초기화
 	MovementStateTag = FGameplayTag::RequestGameplayTag(FName("State.Movement.Idle"));
 
+	RefreshHpBarRatio();
 	AddCharacterAbilities();
 }
 
@@ -150,4 +163,16 @@ void AAGCharacter::SetAttackTarget(AAGCharacter* Target)
 AAGCharacter* AAGCharacter::GetAttackTarget()
 {
 	return AttackTarget;
+}
+
+void AAGCharacter::RefreshHpBarRatio()
+{
+	if (IsValid(HpBarWidgetComponent) && IsValid(AttributeSet))
+	{
+		float Hp = AttributeSet->GetHp();
+		float MaxHp = AttributeSet->GetMaxHp();
+		float Ratio = static_cast<float>(Hp) / MaxHp;
+		UAGWidget_HpBar* HpBarWidget = Cast<UAGWidget_HpBar>(HpBarWidgetComponent->GetUserWidgetObject());
+		HpBarWidget->SetHpRatio(Ratio);
+	}
 }
