@@ -36,6 +36,7 @@ protected:
 	void OnMontageEnded(UAnimMontage* Montage, bool IsInterrupted);
 
 private:
+	// 구르는 애님 몽타주
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"), Category=Montage)
 	TObjectPtr<UAnimMontage> RollMontage;
 

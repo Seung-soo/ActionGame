@@ -68,11 +68,6 @@ void AAGCharacter::AddCharacterAbilities()
 	ASC->AddCharacterAbilities(StartupAbilities);
 }
 
-TSubclassOf<UGameplayAbility> AAGCharacter::FindAbility(FGameplayTag GameplayTag)
-{
-	return *StartupAbilities.Find(GameplayTag);
-}
-
 void AAGCharacter::PerformAttack(AAGCharacter* Target)
 {
 	if (false == IsValid(AbilitySystemComponent) || false == IsValid(Target))
@@ -85,7 +80,8 @@ void AAGCharacter::PerformAttack(AAGCharacter* Target)
 	EventData.Instigator = this; // 이벤트를 일으킨 캐릭터
 	EventData.Target = Target; // 대상 캐릭터 (필요시 수정 가능)
 	EventData.EventTag = FGameplayTag::RequestGameplayTag(FName("Event.Hit.Enemy"));
-	
+
+	// 구체적인 공격 판정을 위해 이벤트 전송
 	AbilitySystemComponent->HandleGameplayEvent(EventData.EventTag, &EventData);
 }
 
@@ -106,7 +102,6 @@ void AAGCharacter::BeginAttackTrace()
 
 void AAGCharacter::EndAttackTrace()
 {
-	// 이전 위치와 현재 위치 사이를 트레이스로 검사
 	TArray<FHitResult> HitResults;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);

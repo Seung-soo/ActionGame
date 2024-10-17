@@ -38,6 +38,7 @@ void AAGPlayerController::BeginPlay()
 
 	AGPlayer = Cast<AAGPlayer>(GetCharacter());
 
+	// 카메라 수직 제한
 	if (IsValid(PlayerCameraManager))
 	{
 		PlayerCameraManager->ViewPitchMin = -60.0f;
@@ -48,7 +49,8 @@ void AAGPlayerController::BeginPlay()
 void AAGPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	
+
+	// 입력 바인딩
 	if (const UAGInputData* InputData = UAGAssetManager::GetAssetByName<UAGInputData>("InputData"))
 	{
 		UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
@@ -111,6 +113,7 @@ void AAGPlayerController::Input_Roll(const FInputActionValue& InputValue)
 {
 	if (IsValid(AGPlayer))
 	{
+		// 구르기 어빌리티 활성화
 		AGPlayer->ActivateAbility(AGGameplayTags::Ability_Roll);
 	}
 }
@@ -129,18 +132,19 @@ void AAGPlayerController::Input_LightAttack(const FInputActionValue& InputValue)
 
 	if (AGPlayer->GetAbilitySystemComponent())
 	{
-		// GameplayEvent 데이터를 생성합니다.
+		// GameplayEvent 데이터를 생성
 		FGameplayEventData EventData;
 		EventData.Instigator = AGPlayer;  // 이벤트를 일으킨 캐릭터
-		EventData.Target = AGPlayer;      // 대상 캐릭터 (필요시 수정 가능)
+		EventData.Target = AGPlayer;      // 대상 캐릭터
 		EventData.TargetTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack.Light")));
 
-		// 이벤트를 AbilitySystemComponent에서 트리거합니다.
+		// 공격 종류를 알려주는 이벤트
 		AGPlayer->GetAbilitySystemComponent()->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack")), &EventData);
 	}
 
 	AGPlayerState->SetInputAttackType(EAttackType::Light);
 	
+	// 콤보 공격 어빌리티 활성화
 	AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
 	
 	AGPlayerState->SetInputAttackType(EAttackType::None);
@@ -165,17 +169,18 @@ void AAGPlayerController::Input_HeavyAttack(const FInputActionValue& InputValue)
 		return;
 	}
 	
-	// GameplayEvent 데이터를 생성합니다.
+	// GameplayEvent 데이터를 생성
 	FGameplayEventData EventData;
 	EventData.Instigator = this; // 이벤트를 일으킨 캐릭터
-	EventData.Target = this; // 대상 캐릭터 (필요시 수정 가능)
+	EventData.Target = this; // 대상 캐릭터 
 	EventData.TargetTags.AddTag(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack.Heavy")));
 
-	// 이벤트를 AbilitySystemComponent에서 트리거합니다.
+	// 공격 종류를 알려주는 이벤트
 	AbilitySystemComponent->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack")), &EventData);
 	
 	AGPlayerState->SetInputAttackType(EAttackType::Heavy);
-	
+
+	// 콤보 공격 어빌리티 활성화
 	AGPlayer->ActivateAbility(AGGameplayTags::Ability_ComboAttack);
 
 	AGPlayerState->SetInputAttackType(EAttackType::None);
@@ -187,13 +192,12 @@ void AAGPlayerController::Input_Look(const FInputActionValue& InputValue)
 	{
 		return;
 	}
-
-	// 프레임 시간에 따른 입력 보정
+	
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 
 	const FVector2D& LookAxisVector = InputValue.Get<FVector2D>();
 
-	// 마우스 감도 조절을 위해 Scale 값 적용 가능
+	// 카메라 회전 시키기
 	AGPlayer->AddControllerYawInput(LookAxisVector.X * MouseSensitivity_X * DeltaTime);
 	AGPlayer->AddControllerPitchInput(-LookAxisVector.Y * MouseSensitivity_Y * DeltaTime);
 }
@@ -224,21 +228,13 @@ void AAGPlayerController::HandleGameplayEvent_SaveAttack()
 
 	if (AGPlayer->GetAbilitySystemComponent())
 	{
-		// GameplayEvent 데이터를 생성합니다.
+		// GameplayEvent 데이터를 생성
 		FGameplayEventData EventData;
 		EventData.Instigator = AGPlayer;  // 이벤트를 일으킨 캐릭터
-		EventData.Target = AGPlayer;      // 대상 캐릭터 (필요시 수정 가능)
-
-		// 이벤트를 AbilitySystemComponent에서 트리거합니다.
+		EventData.Target = AGPlayer;      // 대상 캐릭터
+		
 		AGPlayer->GetAbilitySystemComponent()->HandleGameplayEvent(AGGameplayTags::Event_Montage_SaveAttack, &EventData);
 	}
-	
-	// UAGGameplayAbility_ComboAttack* ComboAttackAbility = AGPlayerState->GetAbilityComboAttack();
-	//
-	// if (IsValid(ComboAttackAbility) && true == ComboAttackAbility->IsActive())
-	// {
-	// 	ComboAttackAbility->DecideNextAttack();
-	// }
 }
 
 void AAGPlayerController::HandleGameplayEvent_RollFinish()
@@ -316,7 +312,7 @@ FVector AAGPlayerController::GetInputDirection()
 	// 플레이어 컨트롤러를 통해 카메라의 회전 값을 가져옴
 	FRotator CameraRotation = GetControlRotation();
 
-	// 카메라의 Yaw 값만 사용 (수평 회전)
+	// 카메라의 Yaw값
 	FRotator YawRotation(0.0f, CameraRotation.Yaw, 0.0f);
 
 	FVector Direction = FVector(0.0, 0.0, 0.0);

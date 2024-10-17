@@ -45,19 +45,24 @@ void UAGGameplayAbility_Roll::ActivateAbility(const FGameplayAbilitySpecHandle H
 	{
 		return;
 	}
-		
+
+	// 지금 입력되어 있는 방향을 가져와서 그 방향으로 회전
 	FVector Direction = Controller->GetInputDirection();
 	if (FVector::ZeroVector != Direction)
 	{
 		Player->SetActorRotation(Direction.Rotation());
 	}
-	
+
+	// 몽타주 실행
 	Player->PlayAnimMontage(RollMontage);
 
+	// 모션 워핑으로 구르는 거리 늘려줌
 	Player->RollMotionWarping();
 
+	// 구를 때 카메라가 좀 뒤로가게 설정
 	Player->PlayRollCamera();
 
+	// 몽타주 종료됐을 때 호출될 함수 바인딩
 	FOnMontageEnded MontageEnded;
 	MontageEnded.BindUObject(this, &ThisClass::OnMontageEnded);
 	AnimInstance->Montage_SetEndDelegate(MontageEnded, RollMontage);
@@ -68,6 +73,7 @@ void UAGGameplayAbility_Roll::ActivateAbility(const FGameplayAbilitySpecHandle H
 		return;
 	}
 
+	// 구르는 동안에 움직이지 못하게
 	AGPlayerState->SetMovementState(AGGameplayTags::State_Movement_Block);
 }
 
@@ -83,8 +89,10 @@ void UAGGameplayAbility_Roll::EndAbility(const FGameplayAbilitySpecHandle Handle
 		return;
 	}
 
-	Player->SetTargetArmLength(300.f);
+	// 카메라 거리 원상 복구
+	Player->ResetTargetArmLength();
 
+	// 다시 움직일 수 있게
 	AGPlayerState->SetMovementState(AGGameplayTags::State_Movement_Idle);
 }
 

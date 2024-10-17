@@ -34,17 +34,22 @@ public:
 
 	USpringArmComponent* GetSpringArmComponent();
 
+	// 가장 가까운 적 탐색
 	virtual void SelectAttackTarget() override;
-
+	
+	// 구르는 모션 워핑에 필요한 타겟 Transform 추가
 	void RollMotionWarping();
-
-	void SetTargetArmLength(float Length);
-
+	// 카메라 거리 초기화
+	void ResetTargetArmLength();
+	// 구를 때 카메라 후진 시작
 	void PlayRollCamera();
+	// 후진된 카메라 원래 상태로 보간하면서 복구할 수 있게 값 입력
 	void ResetCameraSetting();
 
-	void StartSlowMotion(float SlowDownFactor, float Duration);
-	void StopSlowMotion();
+	// 슬로우 모션 + 화면 무채색 전환 시작 
+	void StartSlowMotionAndGray(float SlowDownFactor, float Duration);
+	// 슬로우 모션 + 화면 무채색 전환 종료 
+	void StopSlowMotionAndGray();
 	void ResetPostProcessSettings();
 
 protected:
@@ -54,6 +59,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UCameraComponent> Camera;
 
+	// 주변 타겟 공격 타겟 탐색용 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class USphereComponent> CollisionSphere;
 
@@ -69,6 +75,12 @@ protected:
 
 	// 타겟 ArmLength (목표 값)
 	float TargetArmLength = 300.f;
+
+	// 기본 ArmLength
+	float DefaultTargetArmLength = 300.f;
+
+	// 구를 때 ArmLength
+	float RollTargetArmLength = 500.f;
 
 	// 채도 보간 속도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")

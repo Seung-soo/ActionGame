@@ -47,6 +47,7 @@ void UAGGameplayAbility_ComboAttack::PlayAttackMontage(UAnimMontage* MontageToPl
 
 	AvatarPlayer->PlayAnimMontage(MontageToPlay);
 
+	// 몽타주 종료 델리게이트에 OnMontageEnded함수 바인딩
 	FOnMontageEnded MontageEnded;
 	MontageEnded.BindUObject(this, &ThisClass::OnMontageEnded);
 	AnimInstance->Montage_SetEndDelegate(MontageEnded, MontageToPlay);
@@ -80,11 +81,7 @@ void UAGGameplayAbility_ComboAttack::ExecuteComboAttack()
 			}
 		}
 
-		if (AttackPattern->CurrentAttackType == AGGameplayTags::Animation_Attack_Light_Fourth)
-		{
-			int a = 1;
-		}
-
+		// 다음 공격이 불가능한 공격 타입일 때 마지막 공격이라는 옵션 켜줌
 		if (false == AttackPattern->NextComboEnable)
 		{
 			IsFinish = true;
@@ -143,13 +140,15 @@ void UAGGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilitySpecH
 		return;
 	}
 
+	// 첫 공격 입력은 외부에서 가져온다
 	InputAttackType = AGPlayerState->GetInputAttackType();
-	
+
+	// 공격 중에 움직이지 못하게
 	AGPlayerState->SetMovementState(AGGameplayTags::State_Movement_Block_Attack);
 
 	AGPlayer = Cast<AAGPlayer>(ActorInfo->AvatarActor);
 
-	// "Input.Attack" 이벤트를 기다림
+	// 공격 입력 이벤트를 기다림
 	InputWaitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(FName("Input.Action.Attack")));
 	if (IsValid(InputWaitTask))
 	{
@@ -157,7 +156,7 @@ void UAGGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilitySpecH
 		InputWaitTask->ReadyForActivation();
 	}
 	
-	// "Event.Montage.SaveAttack" 이벤트를 기다림
+	// 다음 공격으로 넘어갈 수 있는 시점에 활성화되는 이벤트를 기다림
 	SaveAttackNotifyTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, AGGameplayTags::Event_Montage_SaveAttack);
 	if (IsValid(SaveAttackNotifyTask))
 	{
@@ -165,7 +164,7 @@ void UAGGameplayAbility_ComboAttack::ActivateAbility(const FGameplayAbilitySpecH
 		SaveAttackNotifyTask->ReadyForActivation();
 	}
 
-	// "Event.Hit.Enemy" 이벤트를 기다림
+	// 공격 성공 이벤트를 기다림
 	HitEnemyTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, AGGameplayTags::Event_Hit_Enemy);
 	if (IsValid(HitEnemyTask))
 	{
@@ -182,39 +181,23 @@ void UAGGameplayAbility_ComboAttack::EndAbility(const FGameplayAbilitySpecHandle
 	bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	
-	PreviousAttackType = FGameplayTag::EmptyTag;
-	IsFinish = true;
-	
+
+	// 공격 타겟 초기화
 	if (IsValid(AGPlayer))
 	{
 		AGPlayer->SetAttackTarget(nullptr);
 	}
-	
+
+	// 움직임 막은 것 풀어줌
 	if (IsValid(AGPlayerState))
 	{
-		InputAttackType = EAttackType::None;
 		AGPlayerState->SetMovementState(AGGameplayTags::State_Movement_Run);
-	}
-
-	if (IsValid(InputWaitTask))
-	{
-		InputWaitTask->EndTask();
-		InputWaitTask = nullptr;
-	}
-
-	if (IsValid(SaveAttackNotifyTask))
-	{
-		SaveAttackNotifyTask->EndTask();
-		SaveAttackNotifyTask = nullptr;
 	}
 }
 
 void UAGGameplayAbility_ComboAttack::OnMontageEnded(UAnimMontage* Montage, bool IsInterrupted)
 {
-	// 어빌리티 종료 시 콤보 타이머를 초기화하거나 추가적인 로직을 처리할 수 있습니다.
-	// 현재 구현에서는 타이머가 콤보를 초기화하기 때문에 별도의 처리는 필요없습니다.
-	if (IsValid(AGPlayerState) && PreviousAttackType == FGameplayTag::EmptyTag)
+	if (PreviousAttackType == FGameplayTag::EmptyTag)
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 	}
@@ -239,11 +222,7 @@ void UAGGameplayAbility_ComboAttack::OnComboInputReceived(FGameplayEventData Pay
 
 void UAGGameplayAbility_ComboAttack::OnSaveAttackNotifyReceived(FGameplayEventData Payload)
 {
-	if (false == IsValid(SaveAttackNotifyTask))
-	{
-		return;
-	}
-
+	// 다음 공격으로 넘어간다
 	ExecuteComboAttack();
 }
 
@@ -293,10 +272,11 @@ void UAGGameplayAbility_ComboAttack::OnHitEnemyReceived(FGameplayEventData Paylo
 
 	if (SpecHandle.IsValid())
 	{
-		// 이펙트 적용
+		// 이펙트 적용 (체력 차감)
 		TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	}
 
+	// 타겟의 피격 어빌리티 활성화
 	Target->ActivateAbility(AGGameplayTags::Ability_Hit);
 	
 	// 피격 애니메이션을 위해 타겟에게 이벤트 발생 시킴
@@ -316,5 +296,5 @@ void UAGGameplayAbility_ComboAttack::OnHitEnemyReceived(FGameplayEventData Paylo
 	}
 
 	// 슬로우 모션
-	AGPlayer->StartSlowMotion(0.25f, 0.2f);
+	AGPlayer->StartSlowMotionAndGray(0.25f, 0.2f);
 }

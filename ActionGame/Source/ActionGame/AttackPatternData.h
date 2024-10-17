@@ -14,20 +14,20 @@ struct FAttackPatternData : public FTableRowBase
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	TArray<FGameplayTag> PreviousAttackTypes;
+	TArray<FGameplayTag> PreviousAttackTypes;	// 이전 공격 타입
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	EAttackType InputType = EAttackType::None;
+	EAttackType InputType = EAttackType::None;	// 입력된 공격 타입
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	FGameplayTag CurrentAttackType = FGameplayTag::EmptyTag;
+	FGameplayTag CurrentAttackType = FGameplayTag::EmptyTag;	// 현재 공격 타입
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	TObjectPtr<UAnimMontage> AttackMontage = nullptr;
+	TObjectPtr<UAnimMontage> AttackMontage = nullptr;	// 공격 몽타주
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	TObjectPtr<UAnimMontage> HitMontage = nullptr;
+	TObjectPtr<UAnimMontage> HitMontage = nullptr;		// 피격 몽타주
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-	bool NextComboEnable = false;
+	bool NextComboEnable = false;	// 이 후에 콤보 공격을 이어나갈 수 있는지
 };

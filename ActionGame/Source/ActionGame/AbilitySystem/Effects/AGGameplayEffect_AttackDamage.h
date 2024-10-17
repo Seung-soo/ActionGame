@@ -6,6 +6,8 @@
 #include "GameplayEffect.h"
 #include "AGGameplayEffect_AttackDamage.generated.h"
 
+/* 공격했을 때 데미지를 주는 Gameplay Effect */
+
 /**
  * 
  */

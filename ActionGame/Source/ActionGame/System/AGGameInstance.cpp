@@ -13,6 +13,7 @@ void UAGGameInstance::Init()
 {
 	Super::Init();
 
+	// 에셋 매니저 초기화
 	UAGAssetManager::Initialize();
 }
 

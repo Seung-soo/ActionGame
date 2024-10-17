@@ -22,14 +22,6 @@ void UAGAssetData::PreSave(FObjectPreSaveContext ObjectSaveContext)
 		for (FAssetEntry AssetEntry : AssetSet.AssetEntries)
 		{
 			FSoftObjectPath& AssetPath = AssetEntry.AssetPath;
-			// const FString& AssetName = AssetPath.GetAssetName();
-			// if (AssetName.StartsWith(TEXT("BP_")) || AssetName.StartsWith(TEXT("B_")) ||
-			// 	AssetName.StartsWith(TEXT("GE_")) || AssetName.StartsWith(TEXT("GA_")))
-			// {
-			// 	FString AssetPathString = AssetPath.GetAssetPathString();
-			// 	AssetPathString.Append(TEXT("_C"));
-			// 	AssetPath = FSoftObjectPath(AssetPathString);
-			// }
 
 			AssetNameToPath.Emplace(AssetEntry.AssetName, AssetEntry.AssetPath);
 			for (const FName& Label : AssetEntry.AssetLabels)

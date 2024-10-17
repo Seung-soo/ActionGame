@@ -40,16 +40,29 @@ public:
 	UFUNCTION()
 	void OnMontageEnded();
 
-	// 피격한 공격의 종류
+	// 피격한 공격의 종류가 이벤트로 들어오는 함수
 	UFUNCTION()
 	void OnAttackTypeReceived(FGameplayEventData Payload);
 
+	// 뒤로 밀려나게 타이머 시작
 	void StartPushback();
+
+	// 뒤로 밀려나는 타이머 동안 호출되는 Tick
 	void PushbackTick();
 
 private:
+	// 밀려나는 타이머 핸들
 	FTimerHandle PushbackTimerHandle;
+
+	// 총 밀려난 거리
 	float TotalPushbackDistance = 0.f;
+
+	// 최대 밀려나는 거리
+	float MaxPushbackDistance = 100.f;
+
+	// 밀려나는 힘의 강도
+	float PushbackPower = 200.f;
+	
 
 	UPROPERTY()
 	TObjectPtr<class AAGCharacter> MyCharacter = nullptr;

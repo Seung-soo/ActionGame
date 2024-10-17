@@ -27,12 +27,12 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 	
 private:
-	void Input_Move(const FInputActionValue& InputValue);
-	void Input_Roll(const FInputActionValue& InputValue);
-	void Input_Block(const FInputActionValue& InputValue);
-	void Input_LightAttack(const FInputActionValue& InputValue);
-	void Input_HeavyAttack(const FInputActionValue& InputValue);
-	void Input_Look(const FInputActionValue& InputValue);
+	void Input_Move(const FInputActionValue& InputValue);			// 움직임
+	void Input_Roll(const FInputActionValue& InputValue);			// 구르기
+	void Input_Block(const FInputActionValue& InputValue);			// 막기
+	void Input_LightAttack(const FInputActionValue& InputValue);	// 약 공격
+	void Input_HeavyAttack(const FInputActionValue& InputValue);	// 강 공격
+	void Input_Look(const FInputActionValue& InputValue);			// 카메라 회전
 
 public:
 	void HandleGameplayEvent(FGameplayTag EventTag);
@@ -45,6 +45,7 @@ public:
 	// 입력된 방향을 체크하는 함수
 	FVector GetInputDirection();
 
+	// 카메라 쉐이크 시작
 	void PlayHitCameraShake();
 
 protected:
@@ -54,6 +55,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	TSubclassOf<UCameraShakeBase> HitCameraShakeClass;
 
+	// 수평, 수직 감도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float MouseSensitivity_X = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

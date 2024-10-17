@@ -39,28 +39,6 @@ void UAGAbilitySystemComponent::CancelAbility(FGameplayTag AbilityTag)
 	CancelAbilityHandle(FindAbilitySpecHandle(AbilityTag));
 }
 
-UGameplayAbility* UAGAbilitySystemComponent::FindAbility(FGameplayTag AbilityTag)
-{
-	for	(const FGameplayAbilitySpecHandle& SpecHandle : SpecHandles)
-	{
-		FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromHandle(SpecHandle);
-		if (nullptr == AbilitySpec || false == IsValid(AbilitySpec->Ability))
-		{
-			continue;
-		}
-		
-		const FGameplayTagContainer& AbilityTags = AbilitySpec->Ability->AbilityTags;
-		if (false == AbilityTags.HasTag(AbilityTag))
-		{
-			continue;
-		}
-
-		return AbilitySpec->Ability;
-	}
-
-	return nullptr;
-}
-
 FGameplayAbilitySpecHandle UAGAbilitySystemComponent::FindAbilitySpecHandle(FGameplayTag AbilityTag)
 {
 	for	(const FGameplayAbilitySpecHandle& SpecHandle : SpecHandles)

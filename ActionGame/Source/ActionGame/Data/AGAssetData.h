@@ -6,6 +6,8 @@
 #include "Engine/DataAsset.h"
 #include "AGAssetData.generated.h"
 
+/* 로드할 에셋들의 데이터 */
+
 USTRUCT()
 struct FAssetEntry
 {

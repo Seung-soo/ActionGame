@@ -2,7 +2,6 @@
 
 
 #include "AGPlayer.h"
-
 #include "AGMonster.h"
 #include "MotionWarpingComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -15,7 +14,6 @@
 #include "../Player/AGPlayerState.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
 
 AAGPlayer::AAGPlayer() : Super()
 {
@@ -27,9 +25,7 @@ AAGPlayer::AAGPlayer() : Super()
 	// 캐릭터 움직임 시 회전하지 않도록 설정
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
-	
 	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	if (IsValid(SpringArm))
@@ -68,7 +64,8 @@ void AAGPlayer::BeginPlay()
 void AAGPlayer::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	
+
+	// 빙의 됐을 때 어빌리티 시스템 초기화
 	InitAbilitySystem();
 }
 
@@ -89,20 +86,6 @@ void AAGPlayer::InitAbilitySystem()
 void AAGPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	// 현재 속도를 확인하여 움직임 상태 태그를 추가/제거
-	FVector CurrentVelocity = GetVelocity();
-	bool bIsMoving = !CurrentVelocity.IsNearlyZero();
-
-	if (bIsMoving && !AbilitySystemComponent->HasMatchingGameplayTag(MovementStateTag))
-	{
-		AbilitySystemComponent->AddLooseGameplayTag(MovementStateTag);
-	}
-	else if (!bIsMoving && AbilitySystemComponent->HasMatchingGameplayTag(MovementStateTag))
-	{
-		AbilitySystemComponent->RemoveLooseGameplayTag(MovementStateTag);
-	}
-
 	
 	if (IsValid(SpringArm))
 	{
@@ -181,6 +164,7 @@ void AAGPlayer::SelectAttackTarget()
 		}
 	}
 
+	// 가장 가까운 적 저장
 	AttackTarget = Cast<AAGCharacter>(ClosestMonster);
 }
 
@@ -191,39 +175,40 @@ void AAGPlayer::RollMotionWarping()
 		return;
 	}
 
+	// 모션 워핑을 할 타겟 Transform 추가
 	FVector TargetLocation = GetActorLocation() + GetActorForwardVector() * DesiredRollDistance;
 	FTransform MyTransform = GetTransform();
 	MyTransform.SetLocation(TargetLocation);
 	MotionWarpingComponent->AddOrUpdateWarpTargetFromTransform(FName("RollTarget"), MyTransform);
 }
 
-void AAGPlayer::SetTargetArmLength(float Length)
+void AAGPlayer::ResetTargetArmLength()
 {
 	if (IsValid(SpringArm))
 	{
-		SpringArm->TargetArmLength = Length;
+		SpringArm->TargetArmLength = DefaultTargetArmLength;
 	}
 }
 
 void AAGPlayer::PlayRollCamera()
 {
-	TargetArmLength = 500.0f;
+	TargetArmLength = RollTargetArmLength;
 	GetWorldTimerManager().SetTimer(RollTimerHandle, this, &AAGPlayer::ResetCameraSetting, 0.2f, false);
 }
 
 void AAGPlayer::ResetCameraSetting()
 {
-	TargetArmLength = 300.0f;
+	TargetArmLength = DefaultTargetArmLength;
 }
 
-void AAGPlayer::StartSlowMotion(float SlowDownFactor, float Duration)
+void AAGPlayer::StartSlowMotionAndGray(float SlowDownFactor, float Duration)
 {
 	// 시간 지연 설정
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), SlowDownFactor);
 
 	// 슬로우 모션 종료를 위한 타이머 설정
 	FTimerHandle TimerHandle;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &AAGPlayer::StopSlowMotion, Duration * SlowDownFactor, false);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &AAGPlayer::StopSlowMotionAndGray, Duration * SlowDownFactor, false);
 
 	if (IsValid(Camera))
 	{
@@ -235,7 +220,7 @@ void AAGPlayer::StartSlowMotion(float SlowDownFactor, float Duration)
 	}
 }
 
-void AAGPlayer::StopSlowMotion()
+void AAGPlayer::StopSlowMotionAndGray()
 {
 	// 시간 지연을 원래대로 복구
 	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);

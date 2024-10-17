@@ -35,7 +35,7 @@ void UAGGameplayAbility_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// "Animation.Attack" 이벤트를 기다림
+	// 피격 당한 공격 이벤트를 기다림
 	UAbilityTask_WaitGameplayEvent* AttackTypeTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, FGameplayTag::RequestGameplayTag(FName("Animation.Attack")));
 	if (IsValid(AttackTypeTask))
 	{
@@ -45,6 +45,7 @@ void UAGGameplayAbility_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 
 	MyCharacter = Cast<AAGCharacter>(ActorInfo->AvatarActor);
 
+	// 체력 갱신
 	if (IsValid(MyCharacter))
 	{
 		MyCharacter->RefreshHpBarRatio();
@@ -122,12 +123,15 @@ void UAGGameplayAbility_Hit::OnAttackTypeReceived(FGameplayEventData Payload)
 	{
 		return;
 	}
-	
+
+	// 공격자 방향으로 회전
 	FVector Dir = Payload.Instigator->GetActorLocation() - MyCharacter->GetActorLocation();
 	MyCharacter->SetActorRotation(Dir.Rotation());
 
+	// 뒤로 이동 시작
 	StartPushback();
 
+	// 몽타주가 종료되거나 캔슬, 중단되면 호출할 함수 바인딩
 	PlayMontageAndWaitTask->OnCompleted.AddDynamic(this, &ThisClass::OnMontageEnded);
 	PlayMontageAndWaitTask->OnInterrupted.AddDynamic(this, &ThisClass::OnMontageEnded);
 	PlayMontageAndWaitTask->OnCancelled.AddDynamic(this, &ThisClass::OnMontageEnded);
@@ -147,16 +151,17 @@ void UAGGameplayAbility_Hit::PushbackTick()
 		return;
 	}
 	
-	const float PushbackAmount = 200.0f * GetWorld()->GetDeltaSeconds();
+	const float PushbackAmount = PushbackPower * GetWorld()->GetDeltaSeconds();
 	TotalPushbackDistance += PushbackAmount;
 
-	if (TotalPushbackDistance >= 100.0f)
+	if (TotalPushbackDistance >= MaxPushbackDistance)
 	{
-		// 총 이동 거리가 100이 넘으면 타이머 중지
+		// 총 이동 거리가 최대 거리를 넘으면 타이머 중지
 		GetWorld()->GetTimerManager().ClearTimer(PushbackTimerHandle);  
 		return;
 	}
-    
+
+	// 뒤 방향으로 이동
 	FVector NewLocation = MyCharacter->GetActorLocation() - MyCharacter->GetActorForwardVector() * PushbackAmount;
 	MyCharacter->SetActorLocation(NewLocation);
 }

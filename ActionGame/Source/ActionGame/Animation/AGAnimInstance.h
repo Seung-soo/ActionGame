@@ -29,9 +29,11 @@ protected:
 	TObjectPtr<class UCharacterMovementComponent> MovementComponent;
 
 protected:
+	// 속도
 	UPROPERTY(BlueprintReadOnly)
 	FVector Velocity = FVector::ZeroVector;
-	
+
+	// 움직일 수 있는지 여부
 	UPROPERTY(BlueprintReadOnly)
 	bool ShouldMove = false;
 };

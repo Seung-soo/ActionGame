@@ -38,9 +38,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAGAbilitySystemComponent> AbilitySystemComponent;
 
+	// 플레이어 스텟
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UAGPlayerSet> PlayerSet;
 
+	// 입력된 공격 타입
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EAttackType InputAttackType;
 };

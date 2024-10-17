@@ -15,17 +15,4 @@ class ACTIONGAME_API UAGPlayerSet : public UAGAttributeSet
 {
 	GENERATED_BODY()
 
-public:
-	UAGPlayerSet();
-	
-public:
-	ATTRIBUTE_ACCESSORS(ThisClass, Stamina);
-	ATTRIBUTE_ACCESSORS(ThisClass, MaxStamina);
-
-private:
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FGameplayAttributeData Stamina;
-
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	FGameplayAttributeData MaxStamina;
 };
